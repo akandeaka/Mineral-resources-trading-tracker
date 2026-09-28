@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#0f172a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="MRT Tracker"/>
+<title>Mineral Resources Trading Tracker</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f172a; --card: #1e293b; --card2: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #22d3ee;
+    --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+    --gold: #eab308; --border: #334155;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+    padding: 12px; max-width: 1200px; margin: 0 auto;
+  }
+  h1 { font-size: 1.3rem; margin-bottom: 4px; }
+  h2 { font-size: 1.05rem; margin: 16px 0 8px; color: var(--accent); }
+  h3 { font-size: 0.9rem; margin-bottom: 6px; color: var(--muted); }
+  .subtitle { color: var(--muted); font-size: 0.82rem; margin-bottom: 12px; }
+
+  .tabs { display: flex; gap: 4px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 4px; }
+  .tab {
+    padding: 8px 14px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; white-space: nowrap; font-size: 0.82rem;
+    color: var(--text);
+  }
+  .tab.active { background: var(--accent); color: #0f172a; font-weight: 600; border-color: var(--accent); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; margin-bottom: 12px;
+  }
+  .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+  label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+  input, select, textarea {
+    width: 100%; padding: 9px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font-size: 0.88rem; font-family: inherit;
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent); }
+  input[readonly] { background: var(--card2); color: var(--muted); }
+
+  button {
+    padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer;
+    font-size: 0.85rem; font-weight: 600; font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: #0f172a; }
+  .btn-primary:hover { background: #06b6d4; }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-small { padding: 4px 8px; font-size: 0.72rem; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-success { background: var(--green); color: white; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 8px; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 0.72rem; text-transform: uppercase; }
+  .amt { text-align: right; font-variant-numeric: tabular-nums; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .scroll { overflow-x: auto; }
+
+  .stat {
+    background: var(--card2); border-radius: 8px; padding: 10px 12px;
+  }
+  .stat .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat .value { font-size: 1.1rem; font-weight: 700; margin-top: 2px; }
+
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .row > div { flex: 1; min-width: 130px; }
+  .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 600; }
+  .badge.instock { background: rgba(34,197,94,0.2); color: var(--green); }
+  .badge.sold { background: rgba(148,163,184,0.2); color: var(--muted); }
+  .badge.partial { background: rgba(234,179,8,0.2); color: var(--yellow); }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #0f172a; padding: 10px 20px;
+    border-radius: 8px; font-weight: 600; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none; z-index: 100;
+  }
+  .toast.show { opacity: 1; }
+  canvas { max-height: 280px; }
+  .muted { color: var(--muted); font-size: 0.78rem; }
+  .empty { text-align: center; color: var(--muted); padding: 20px; font-size: 0.85rem; }
+  .mini { font-size: 0.7rem; color: var(--muted); }
+
+  .purchase-block {
+    background: var(--card2); border-radius: 8px; padding: 12px; margin-bottom: 10px;
+  }
+  .purchase-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 8px; flex-wrap: wrap; margin-bottom: 8px;
+  }
+  .sales-list {
+    margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
+  }
+</style>
+</head>
+<body>
+
+<h1>⛏️ Mineral Resources Trading Tracker</h1>
+<p class="subtitle">Purchases • Sales • Inventory • Profits</p>
+
+<div class="tabs">
+  <div class="tab active" data-tab="dashboard">📊 Dashboard</div>
+  <div class="tab" data-tab="purchases">🛒 Purchases</div>
+  <div class="tab" data-tab="inventory">📦 Inventory</div>
+  <div class="tab" data-tab="minerals">🧾 By Mineral</div>
+  <div class="tab" data-tab="suppliers">👤 Suppliers & Buyers</div>
+  <div class="tab" data-tab="data">⚙️ Data</div>
+</div>
+
+<!-- ================= DASHBOARD ================= -->
+<div id="dashboard" class="panel active">
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>Period</label>
+        <select id="dashPeriod">
+          <option value="week">This Week</option>
+          <option value="month" selected>This Month</option>
+          <option value="year">This Year</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </div>
+      <div id="customStartWrap" style="display:none">
+        <label>From</label><input type="date" id="dashStart" />
+      </div>
+      <div id="customEndWrap" style="display:none">
+        <label>To</label><input type="date" id="dashEnd" />
+      </div>
+    </div>
+  </div>
+
+  <h2 id="dashTitle">This Month Summary</h2>
+  <div class="grid" id="dashStats"></div>
+
+  <h2>Profit Trend</h2>
+  <div class="card"><canvas id="profitTrendChart"></canvas></div>
+
+  <h2>Weight Traded (Bought vs Sold)</h2>
+  <div class="card"><canvas id="weightChart"></canvas></div>
+
+  <h2>🏆 Top Suppliers (by volume bought)</h2>
+  <div class="card scroll">
+    <table id="topSuppliersTable">
+      <thead><tr>
+        <th>#</th><th>Supplier</th><th class="amt">Purchases</th>
+        <th class="amt">Total Cost</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2>🏆 Top Buyers (by revenue)</h2>
+  <div class="card scroll">
+    <table id="topBuyersTable">
+      <thead><tr>
+        <th>#</th><th>Buyer</th><th class="amt">Sales</th>
+        <th class="amt">Total Revenue</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2>💡 Insights</h2>
+  <div class="card" id="insights"></div>
+</div>
+
+<!-- ================= PURCHASES ================= -->
+<div id="purchases" class="panel">
+  <div class="card">
+    <h2>Add Purchase</h2>
+    <div class="row">
+      <div><label>Date</label><input type="date" id="pDate" /></div>
+      <div>
+        <label>Mineral</label>
+        <select id="pMineral">
+          <option>Tin</option><option>Columbite</option><option>Zircon</option>
+          <option>Monazite</option><option>Lead</option><option>Other</option>
+        </select>
+      </div>
+      <div><label>Supplier</label><input type="text" id="pSupplier" placeholder="e.g. Supplier A" /></div>
+      <div><label>Location</label><input type="text" id="pLocation" placeholder="e.g. Jos" /></div>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <div><label>Quantity</label><input type="number" id="pQty" step="0.01" placeholder="0" /></div>
+      <div>
+        <label>Weight Unit</label>
+        <select id="pUnit">
+          <option value="kg" selected>kg</option>
+          <option value="lb">lb (pounds)</option>
+          <option value="tonne">tonne</option>
+        </select>
+      </div>
+      <div><label>kg Equivalent</label><input type="text" id="pKgEq" readonly placeholder="—" /></div>
+      <div><label>Purchase Cost (₦)</label><input type="number" id="pCost" step="0.01" placeholder="0" /></div>
+    </div>
+
+    <h3 style="margin-top:14px">Itemized Costs (₦)</h3>
+    <div class="row">
+      <div><label>Transport</label><input type="number" id="cTransport" step="0.01" placeholder="0" /></div>
+      <div><label>Labour</label><input type="number" id="cLabour" step="0.01" placeholder="0" /></div>
+      <div><label>Equipment</label><input type="number" id="cEquipment" step="0.01" placeholder="0" /></div>
+      <div><label>Site Fees</label><input type="number" id="cSite" step="0.01" placeholder="0" /></div>
+      <div><label>Processing</label><input type="number" id="cProcessing" step="0.01" placeholder="0" /></div>
+      <div><label>Miscellaneous</label><input type="number" id="cMisc" step="0.01" placeholder="0" /></div>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <div><label>Total Cost (₦)</label><input type="text" id="pTotalCost" readonly placeholder="0" /></div>
+      <div><label>Cost per Unit (₦)</label><input type="text" id="pCostPerUnit" readonly placeholder="0" /></div>
+      <div><label>Notes</label><input type="text" id="pNotes" placeholder="optional" /></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" onclick="addPurchase()">💾 Save Purchase</button>
+      <button class="btn-ghost" onclick="clearPurchaseForm()">Clear</button>
+    </div>
+  </div>
+
+  <h2>Purchase Records</h2>
+  <div class="card scroll">
+    <table id="purchasesTable">
+      <thead><tr>
+        <th>Date</th><th>Mineral</th><th>Supplier</th>
+        <th class="amt">Bought</th><th class="amt">Sold</th>
+        <th class="amt">Remaining</th><th class="amt">Total Cost</th>
+        <th class="amt">Revenue</th><th class="amt">Profit</th>
+        <th>Status</th><th></th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="salesDetailArea"></div>
+</div>
+
+<!-- ================= INVENTORY ================= -->
+<div id="inventory" class="panel">
+  <h2>Current Stock (Unsold Minerals)</h2>
+  <div class="grid" id="inventoryStats"></div>
+
+  <h2>Stock by Mineral</h2>
+  <div class="card scroll">
+    <table id="inventoryTable">
+      <thead><tr>
+        <th>Mineral</th><th class="amt">Qty Held</th>
+        <th class="amt">Total Invested</th><th class="amt">Avg Cost/unit</th>
+        <th class="amt">Purchases Open</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2>Open Purchases (still holding stock)</h2>
+  <div class="card scroll">
+    <table id="openPurchasesTable">
+      <thead><tr>
+        <th>Date</th><th>Mineral</th><th>Supplier</th>
+        <th class="amt">Remaining</th><th class="amt">Invested</th>
+        <th class="amt">Cost/unit</th><th></th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= BY MINERAL ================= -->
+<div id="minerals" class="panel">
+  <h2>By-Mineral Summary (All Time)</h2>
+  <div class="card scroll">
+    <table id="mineralsTable">
+      <thead><tr>
+        <th>Mineral</th>
+        <th class="amt">Bought</th><th class="amt">Sold</th><th class="amt">Remaining</th>
+        <th class="amt">Invested</th><th class="amt">Revenue</th>
+        <th class="amt">Profit</th>
+        <th class="amt">Avg Buy</th><th class="amt">Avg Sell</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= SUPPLIERS & BUYERS ================= -->
+<div id="suppliers" class="panel">
+  <h2>Suppliers (All Time)</h2>
+  <div class="card scroll">
+    <table id="suppliersTable">
+      <thead><tr>
+        <th>Supplier</th><th class="amt">Purchases</th>
+        <th class="amt">Total Cost</th><th class="amt">Avg Cost</th>
+        <th>Last Purchase</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <h2>Buyers (All Time)</h2>
+  <div class="card scroll">
+    <table id="buyersTable">
+      <thead><tr>
+        <th>Buyer</th><th class="amt">Sales</th>
+        <th class="amt">Total Revenue</th><th class="amt">Avg Revenue</th>
+        <th>Last Sale</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= DATA ================= -->
+<div id="data" class="panel">
+  <div class="card">
+    <h2>Backup & Restore</h2>
+    <p class="muted">Your data is stored in this browser only. Export regularly.</p>
+    <div class="actions">
+      <button class="btn-primary" onclick="exportData()">⬇️ Export JSON Backup</button>
+      <button class="btn-ghost" onclick="document.getElementById('importFile').click()">⬆️ Import Backup</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
+      <button class="btn-danger" onclick="clearAll()">🗑️ Delete All Data</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Quick Stats</h2>
+    <div id="dataStats" class="grid"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+/* ============================================================
+   DATA LAYER
+============================================================ */
+const KEY = 'mrt_v1';
+let db = { purchases: [] };
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) db = JSON.parse(raw);
+  } catch(e) { console.warn(e); }
+  if (!db.purchases) db.purchases = [];
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+function uid() { return Math.random().toString(36).slice(2, 10); }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Number(n).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtInt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Number(n).toLocaleString('en-NG', { maximumFractionDigits: 0 });
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ============================================================
+   WEIGHT CONVERSION
+============================================================ */
+function toKg(qty, unit) {
+  if (unit === 'lb') return qty * 0.453592;
+  if (unit === 'tonne') return qty * 1000;
+  return qty; // kg default
+}
+function unitLabel(unit) {
+  return unit === 'lb' ? 'lb' : unit === 'tonne' ? 'tonne' : 'kg';
+}
+
+/* ============================================================
+   TABS
+============================================================ */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'dashboard') renderDashboard();
+    if (tab.dataset.tab === 'inventory') renderInventory();
+    if (tab.dataset.tab === 'minerals') renderMineralsSummary();
+    if (tab.dataset.tab === 'suppliers') renderSuppliersBuyers();
+    if (tab.dataset.tab === 'data') renderDataStats();
+    if (tab.dataset.tab === 'purchases') renderPurchases();
+  });
+});
+
+/* ============================================================
+   PURCHASE FORM
+============================================================ */
+['pQty','pUnit','pCost','cTransport','cLabour','cEquipment','cSite','cProcessing','cMisc'].forEach(id => {
+  document.addEventListener('input', e => {
+    if (e.target && e.target.id === id) recalcPurchase();
+  });
+});
+document.getElementById('pUnit').addEventListener('change', recalcPurchase);
+
+function recalcPurchase() {
+  const qty = parseFloat(document.getElementById('pQty').value) || 0;
+  const unit = document.getElementById('pUnit').value;
+  const purchaseCost = parseFloat(document.getElementById('pCost').value) || 0;
+  const otherCosts = ['cTransport','cLabour','cEquipment','cSite','cProcessing','cMisc']
+    .reduce((s, id) => s + (parseFloat(document.getElementById(id).value) || 0), 0);
+
+  // kg equivalent
+  if (qty && unit !== 'kg') {
+    document.getElementById('pKgEq').value = toKg(qty, unit).toFixed(2) + ' kg';
+  } else if (qty && unit === 'kg') {
+    document.getElementById('pKgEq').value = qty + ' kg';
+  } else {
+    document.getElementById('pKgEq').value = '';
+  }
+
+  const totalCost = purchaseCost + otherCosts;
+  document.getElementById('pTotalCost').value = totalCost ? fmt(totalCost) : '';
+  document.getElementById('pCostPerUnit').value =
+    (qty && totalCost) ? fmt(totalCost / qty) + ' / ' + unitLabel(unit) : '';
+}
+
+function clearPurchaseForm() {
+  ['pSupplier','pLocation','pQty','pKgEq','pCost','cTransport','cLabour',
+   'cEquipment','cSite','cProcessing','cMisc','pTotalCost','pCostPerUnit','pNotes']
+   .forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pDate').value = today();
+  document.getElementById('pUnit').value = 'kg';
+  document.getElementById('pMineral').value = 'Tin';
+}
+
+function addPurchase() {
+  const date = document.getElementById('pDate').value || today();
+  const mineral = document.getElementById('pMineral').value;
+  const supplier = document.getElementById('pSupplier').value.trim();
+  const location = document.getElementById('pLocation').value.trim();
+  const qty = parseFloat(document.getElementById('pQty').value) || 0;
+  const unit = document.getElementById('pUnit').value;
+  const purchaseCost = parseFloat(document.getElementById('pCost').value) || 0;
+
+  if (!qty) return toast('Enter quantity');
+  if (!purchaseCost) return toast('Enter purchase cost');
+
+  const costs = {
+    transport: parseFloat(document.getElementById('cTransport').value) || 0,
+    labour: parseFloat(document.getElementById('cLabour').value) || 0,
+    equipment: parseFloat(document.getElementById('cEquipment').value) || 0,
+    site: parseFloat(document.getElementById('cSite').value) || 0,
+    processing: parseFloat(document.getElementById('cProcessing').value) || 0,
+    misc: parseFloat(document.getElementById('cMisc').value) || 0
+  };
+  const otherCostTotal = Object.values(costs).reduce((a,b) => a+b, 0);
+  const totalCost = purchaseCost + otherCostTotal;
+
+  db.purchases.push({
+    id: uid(),
+    date, mineral, supplier, location,
+    qty, unit, qtyKg: toKg(qty, unit),
+    purchaseCost, costs, totalCost,
+    costPerUnit: totalCost / qty,
+    sales: [],  // sales added later
+    notes: document.getElementById('pNotes').value.trim()
+  });
+
+  save();
+  renderAll();
+  clearPurchaseForm();
+  toast('Purchase saved');
+}
+
+function deletePurchase(id) {
+  const p = db.purchases.find(x => x.id === id);
+  if (!p) return;
+  if (p.sales.length > 0) {
+    if (!confirm('This purchase has sales. Delete purchase AND all its sales?')) return;
+  } else {
+    if (!confirm('Delete this purchase?')) return;
+  }
+  db.purchases = db.purchases.filter(x => x.id !== id);
+  save(); renderAll();
+  toast('Purchase deleted');
+}
+
+/* ============================================================
+   SALES
+============================================================ */
+function addSale(purchaseId) {
+  const p = db.purchases.find(x => x.id === purchaseId);
+  if (!p) return;
+
+  const saleDate = prompt('Sale date (YYYY-MM-DD):', today());
+  if (!saleDate) return;
+  const buyer = prompt('Buyer name:');
+  if (!buyer) return;
+  const qtySold = parseFloat(prompt('Quantity sold (' + unitLabel(p.unit) + '):'));
+  if (!qtySold || qtySold <= 0) return;
+  const sellTotal = parseFloat(prompt('Total sell amount (₦):'));
+  if (!sellTotal || sellTotal <= 0) return;
+
+  const remaining = remainingQty(p);
+  if (qtySold > remaining + 0.0001) {
+    alert('Cannot sell more than remaining stock (' + remaining.toFixed(2) + ' ' + unitLabel(p.unit) + ')');
+    return;
+  }
+
+  const costShare = (qtySold / p.qty) * p.totalCost;   // proportional cost
+  const profit = sellTotal - costShare;
+
+  p.sales.push({
+    id: uid(),
+    date: saleDate,
+    buyer,
+    qty: qtySold,
+    sellTotal,
+    costShare,
+    profit,
+    sellPerUnit: sellTotal / qtySold
+  });
+
+  save(); renderAll();
+  toast('Sale added');
+}
+
+function deleteSale(purchaseId, saleId) {
+  const p = db.purchases.find(x => x.id === purchaseId);
+  if (!p) return;
+  if (!confirm('Delete this sale?')) return;
+  p.sales = p.sales.filter(s => s.id !== saleId);
+  save(); renderAll();
+  toast('Sale deleted');
+}
+
+function remainingQty(p) {
+  const sold = p.sales.reduce((s, x) => s + x.qty, 0);
+  return Math.max(0, p.qty - sold);
+}
+
+function purchaseRevenue(p) {
+  return p.sales.reduce((s, x) => s + x.sellTotal, 0);
+}
+function purchaseProfit(p) {
+  return p.sales.reduce((s, x) => s + x.profit, 0);
+}
+function purchaseCostSold(p) {
+  return p.sales.reduce((s, x) => s + x.costShare, 0);
+}
+
+function toggleSalesDetail(purchaseId) {
+  const area = document.getElementById('salesDetailArea');
+  const p = db.purchases.find(x => x.id === purchaseId);
+  if (!p) return;
+  area.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'card';
+  wrap.innerHTML = `
+    <h2>Sales for: ${p.mineral} — ${p.qty} ${unitLabel(p.unit)} from ${p.supplier || '—'}</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Buyer</th><th class="amt">Qty</th>
+          <th class="amt">Sell Total</th><th class="amt">Sell/unit</th>
+          <th class="amt">Profit</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${p.sales.length === 0
+            ? '<tr><td colspan="7" class="empty">No sales yet</td></tr>'
+            : p.sales.map(s => `
+              <tr>
+                <td>${s.date}</td>
+                <td>${s.buyer}</td>
+                <td class="amt">${s.qty} ${unitLabel(p.unit)}</td>
+                <td class="amt">${fmt(s.sellTotal)}</td>
+                <td class="amt">${fmt(s.sellPerUnit)}</td>
+                <td class="amt ${s.profit >= 0 ? 'pos' : 'neg'}">${fmt(s.profit)}</td>
+                <td><button class="btn-danger btn-small" onclick="deleteSale('${p.id}','${s.id}')">✕</button></td>
+              </tr>`).join('')
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn-success" onclick="addSale('${p.id}')">➕ Add Sale</button>
+      <button class="btn-ghost" onclick="document.getElementById('salesDetailArea').innerHTML=''">Close</button>
+    </div>
+  `;
+  area.appendChild(wrap);
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ============================================================
+   RENDER — PURCHASES
+============================================================ */
+function renderPurchases() {
+  const tb = document.querySelector('#purchasesTable tbody');
+  tb.innerHTML = '';
+  const rows = [...db.purchases].sort((a,b) => b.date.localeCompare(a.date));
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="11" class="empty">No purchases yet</td></tr>';
+    return;
+  }
+  rows.forEach(p => {
+    const sold = p.qty - remainingQty(p);
+    const rem = remainingQty(p);
+    const revenue = purchaseRevenue(p);
+    const profit = purchaseProfit(p);
+    const status = rem <= 0.0001 ? '<span class="badge sold">Sold Out</span>'
+                  : sold <= 0.0001 ? '<span class="badge instock">In Stock</span>'
+                  : '<span class="badge partial">Partial</span>';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.date}</td>
+      <td>${p.mineral}</td>
+      <td>${p.supplier || '—'}</td>
+      <td class="amt">${p.qty} ${unitLabel(p.unit)}</td>
+      <td class="amt">${sold.toFixed(2)}</td>
+      <td class="amt">${rem.toFixed(2)}</td>
+      <td class="amt">${fmtInt(p.totalCost)}</td>
+      <td class="amt">${revenue ? fmtInt(revenue) : '—'}</td>
+      <td class="amt ${profit > 0 ? 'pos' : profit < 0 ? 'neg' : ''}">${profit ? fmtInt(profit) : '—'}</td>
+      <td>${status}</td>
+      <td>
+        <button class="btn-success btn-small" onclick="addSale('${p.id}')">+Sale</button>
+        <button class="btn-ghost btn-small" onclick="toggleSalesDetail('${p.id}')">View</button>
+        <button class="btn-danger btn-small" onclick="deletePurchase('${p.id}')">✕</button>
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+/* ============================================================
+   RENDER — INVENTORY
+============================================================ */
+function renderInventory() {
+  const open = db.purchases.filter(p => remainingQty(p) > 0.0001);
+  const totalInvested = open.reduce((s, p) => s + (remainingQty(p) / p.qty) * p.totalCost, 0);
+
+  document.getElementById('inventoryStats').innerHTML = `
+    <div class="stat"><div class="label">Open Purchases</div><div class="value">${open.length}</div></div>
+    <div class="stat"><div class="label">Stock Value (₦)</div><div class="value">₦${fmtInt(totalInvested)}</div></div>
+  `;
+
+  // Group by mineral
+  const byMineral = {};
+  open.forEach(p => {
+    const rem = remainingQty(p);
+    const invested = (rem / p.qty) * p.totalCost;
+    if (!byMineral[p.mineral]) byMineral[p.mineral] = { qty: 0, unit: p.unit, invested: 0, count: 0 };
+    byMineral[p.mineral].qty += rem;
+    byMineral[p.mineral].invested += invested;
+    byMineral[p.mineral].count += 1;
+  });
+
+  const invTb = document.querySelector('#inventoryTable tbody');
+  const entries = Object.entries(byMineral);
+  if (!entries.length) {
+    invTb.innerHTML = '<tr><td colspan="5" class="empty">No stock held</td></tr>';
+  } else {
+    invTb.innerHTML = entries.map(([mineral, d]) => `
+      <tr>
+        <td>${mineral}</td>
+        <td class="amt">${d.qty.toFixed(2)} ${unitLabel(d.unit)}</td>
+        <td class="amt">${fmtInt(d.invested)}</td>
+        <td class="amt">${fmtInt(d.invested / d.qty)} / ${unitLabel(d.unit)}</td>
+        <td class="amt">${d.count}</td>
+      </tr>
+    `).join('');
+  }
+
+  const openTb = document.querySelector('#openPurchasesTable tbody');
+  if (!open.length) {
+    openTb.innerHTML = '<tr><td colspan="7" class="empty">No open purchases</td></tr>';
+  } else {
+    openTb.innerHTML = open
+      .sort((a,b) => b.date.localeCompare(a.date))
+      .map(p => {
+        const rem = remainingQty(p);
+        const invested = (rem / p.qty) * p.totalCost;
+        return `<tr>
+          <td>${p.date}</td>
+          <td>${p.mineral}</td>
+          <td>${p.supplier || '—'}</td>
+          <td class="amt">${rem.toFixed(2)} ${unitLabel(p.unit)}</td>
+          <td class="amt">${fmtInt(invested)}</td>
+          <td class="amt">${fmtInt(p.costPerUnit)} / ${unitLabel(p.unit)}</td>
+          <td><button class="btn-success btn-small" onclick="addSale('${p.id}')">+Sale</button></td>
+        </tr>`;
+      }).join('');
+  }
+}
+
+/* ============================================================
+   RENDER — BY MINERAL
+============================================================ */
+function renderMineralsSummary() {
+  const map = {};
+  db.purchases.forEach(p => {
+    if (!map[p.mineral]) map[p.mineral] = {
+      boughtQty: 0, soldQty: 0, unit: p.unit, invested: 0, revenue: 0, profit: 0
+    };
+    const m = map[p.mineral];
+    m.boughtQty += p.qty;
+    m.soldQty += p.qty - remainingQty(p);
+    m.invested += p.totalCost;
+    m.revenue += purchaseRevenue(p);
+    m.profit += purchaseProfit(p);
+  });
+  const tb = document.querySelector('#mineralsTable tbody');
+  const entries = Object.entries(map).sort((a,b) => b[1].profit - a[1].profit);
+  if (!entries.length) {
+    tb.innerHTML = '<tr><td colspan="9" class="empty">No data yet</td></tr>';
+    return;
+  }
+  tb.innerHTML = entries.map(([mineral, m]) => {
+    const remaining = m.boughtQty - m.soldQty;
+    const avgBuy = m.boughtQty ? m.invested / m.boughtQty : 0;
+    const avgSell = m.soldQty ? m.revenue / m.soldQty : 0;
+    return `<tr>
+      <td>${mineral}</td>
+      <td class="amt">${m.boughtQty.toFixed(2)} ${unitLabel(m.unit)}</td>
+      <td class="amt">${m.soldQty.toFixed(2)}</td>
+      <td class="amt">${remaining.toFixed(2)}</td>
+      <td class="amt">${fmtInt(m.invested)}</td>
+      <td class="amt">${fmtInt(m.revenue)}</td>
+      <td class="amt ${m.profit >= 0 ? 'pos' : 'neg'}">${fmtInt(m.profit)}</td>
+      <td class="amt">${fmtInt(avgBuy)}</td>
+      <td class="amt">${fmtInt(avgSell)}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ============================================================
+   RENDER — SUPPLIERS & BUYERS
+============================================================ */
+function renderSuppliersBuyers() {
+  // Suppliers
+  const supp = {};
+  db.purchases.forEach(p => {
+    if (!p.supplier) return;
+    if (!supp[p.supplier]) supp[p.supplier] = { count: 0, cost: 0, last: '' };
+    supp[p.supplier].count++;
+    supp[p.supplier].cost += p.totalCost;
+    if (p.date > supp[p.supplier].last) supp[p.supplier].last = p.date;
+  });
+  const suppTb = document.querySelector('#suppliersTable tbody');
+  const suppEntries = Object.entries(supp).sort((a,b) => b[1].cost - a[1].cost);
+  if (!suppEntries.length) {
+    suppTb.innerHTML = '<tr><td colspan="5" class="empty">No suppliers yet</td></tr>';
+  } else {
+    suppTb.innerHTML = suppEntries.map(([name, d]) => `
+      <tr>
+        <td>${name}</td>
+        <td class="amt">${d.count}</td>
+        <td class="amt">${fmtInt(d.cost)}</td>
+        <td class="amt">${fmtInt(d.cost / d.count)}</td>
+        <td>${d.last}</td>
+      </tr>
+    `).join('');
+  }
+
+  // Buyers
+  const buyers = {};
+  db.purchases.forEach(p => {
+    p.sales.forEach(s => {
+      if (!buyers[s.buyer]) buyers[s.buyer] = { count: 0, revenue: 0, last: '' };
+      buyers[s.buyer].count++;
+      buyers[s.buyer].revenue += s.sellTotal;
+      if (s.date > buyers[s.buyer].last) buyers[s.buyer].last = s.date;
+    });
+  });
+  const buyTb = document.querySelector('#buyersTable tbody');
+  const buyEntries = Object.entries(buyers).sort((a,b) => b[1].revenue - a[1].revenue);
+  if (!buyEntries.length) {
+    buyTb.innerHTML = '<tr><td colspan="5" class="empty">No buyers yet</td></tr>';
+  } else {
+    buyTb.innerHTML = buyEntries.map(([name, d]) => `
+      <tr>
+        <td>${name}</td>
+        <td class="amt">${d.count}</td>
+        <td class="amt">${fmtInt(d.revenue)}</td>
+        <td class="amt">${fmtInt(d.revenue / d.count)}</td>
+        <td>${d.last}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+/* ============================================================
+   DATE RANGES
+============================================================ */
+function periodRange(period) {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  if (period === 'week') {
+    const day = now.getDay();
+    const monday = new Date(now); monday.setDate(now.getDate() - ((day+6)%7));
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    return [monday.toISOString().slice(0,10), sunday.toISOString().slice(0,10)];
+  }
+  if (period === 'month') {
+    const start = new Date(y, m, 1).toISOString().slice(0,10);
+    const end = new Date(y, m+1, 0).toISOString().slice(0,10);
+    return [start, end];
+  }
+  if (period === 'year') return [`${y}-01-01`, `${y}-12-31`];
+  return null;
+}
+function inRange(date, start, end) { return date >= start && date <= end; }
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+let profitTrendChart, weightChart;
+
+document.getElementById('dashPeriod').addEventListener('change', e => {
+  const custom = e.target.value === 'custom';
+  document.getElementById('customStartWrap').style.display = custom ? 'block' : 'none';
+  document.getElementById('customEndWrap').style.display = custom ? 'block' : 'none';
+  renderDashboard();
+});
+document.getElementById('dashStart').addEventListener('change', renderDashboard);
+document.getElementById('dashEnd').addEventListener('change', renderDashboard);
+
+function getActiveRange() {
+  const period = document.getElementById('dashPeriod').value;
+  if (period === 'custom') {
+    const s = document.getElementById('dashStart').value;
+    const e = document.getElementById('dashEnd').value;
+    if (s && e) return [s, e];
+    return periodRange('month');
+  }
+  return periodRange(period);
+}
+
+function aggregate(start, end) {
+  const purchases = db.purchases.filter(p => inRange(p.date, start, end));
+  const allSales = [];
+  db.purchases.forEach(p => {
+    p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
+      allSales.push({ sale: s, purchase: p });
+    });
+  });
+
+  const totalInvested = purchases.reduce((s, p) => s + p.totalCost, 0);
+  const totalBoughtKg = purchases.reduce((s, p) => s + p.qtyKg, 0);
+  const totalSoldKg = allSales.reduce((s, x) => s + toKg(x.sale.qty, x.purchase.unit), 0);
+  const revenue = allSales.reduce((s, x) => s + x.sale.sellTotal, 0);
+  const profit = allSales.reduce((s, x) => s + x.sale.profit, 0);
+
+  // Current stock value (all-time)
+  const open = db.purchases.filter(p => remainingQty(p) > 0.0001);
+  const stockValue = open.reduce((s, p) => s + (remainingQty(p) / p.qty) * p.totalCost, 0);
+
+  return {
+    purchasesCount: purchases.length,
+    salesCount: allSales.length,
+    totalInvested, totalBoughtKg, totalSoldKg, revenue, profit, stockValue
+  };
+}
+
+function renderDashboard() {
+  const [start, end] = getActiveRange();
+  const periodLabel = document.getElementById('dashPeriod').selectedOptions[0].text;
+  document.getElementById('dashTitle').textContent = `${periodLabel} — ${start} to ${end}`;
+
+  const a = aggregate(start, end);
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat"><div class="label">Purchases</div><div class="value">${a.purchasesCount}</div></div>
+    <div class="stat"><div class="label">Sales</div><div class="value">${a.salesCount}</div></div>
+    <div class="stat"><div class="label">Total Invested</div><div class="value">₦${fmtInt(a.totalInvested)}</div></div>
+    <div class="stat"><div class="label">Revenue</div><div class="value pos">₦${fmtInt(a.revenue)}</div></div>
+    <div class="stat"><div class="label">Profit</div><div class="value ${a.profit >= 0 ? 'pos' : 'neg'}">₦${fmtInt(a.profit)}</div></div>
+    <div class="stat"><div class="label">Bought (kg)</div><div class="value">${a.totalBoughtKg.toFixed(1)}</div></div>
+    <div class="stat"><div class="label">Sold (kg)</div><div class="value">${a.totalSoldKg.toFixed(1)}</div></div>
+    <div class="stat"><div class="label">Stock Value</div><div class="value">₦${fmtInt(a.stockValue)}</div></div>
+  `;
+
+  // Profit trend
+  const byDate = {};
+  db.purchases.forEach(p => {
+    p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
+      byDate[s.date] = (byDate[s.date] || 0) + s.profit;
+    });
+  });
+  const dates = Object.keys(byDate).sort();
+  const ctx1 = document.getElementById('profitTrendChart').getContext('2d');
+  if (profitTrendChart) profitTrendChart.destroy();
+  profitTrendChart = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: dates.length ? dates.map(d => d.slice(5)) : ['No data'],
+      datasets: [{
+        label: 'Daily Profit (₦)',
+        data: dates.length ? dates.map(d => byDate[d]) : [0],
+        borderColor: '#22d3ee',
+        backgroundColor: 'rgba(34,211,238,0.15)',
+        fill: true, tension: 0.3, pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Weight chart
+  const ctx2 = document.getElementById('weightChart').getContext('2d');
+  if (weightChart) weightChart.destroy();
+  weightChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['Bought', 'Sold'],
+      datasets: [{
+        data: [a.totalBoughtKg, a.totalSoldKg],
+        backgroundColor: ['#eab308', '#22c55e']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Top suppliers
+  const supp = {};
+  db.purchases.filter(p => inRange(p.date, start, end)).forEach(p => {
+    if (!p.supplier) return;
+    if (!supp[p.supplier]) supp[p.supplier] = { count: 0, cost: 0 };
+    supp[p.supplier].count++;
+    supp[p.supplier].cost += p.totalCost;
+  });
+  const suppEntries = Object.entries(supp).sort((a,b) => b[1].cost - a[1].cost).slice(0, 10);
+  const suppTb = document.querySelector('#topSuppliersTable tbody');
+  suppTb.innerHTML = suppEntries.length
+    ? suppEntries.map(([name, d], i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
+        return `<tr>
+          <td>${medal}</td><td>${name}</td>
+          <td class="amt">${d.count}</td>
+          <td class="amt">${fmtInt(d.cost)}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="4" class="empty">No suppliers in this period</td></tr>';
+
+  // Top buyers
+  const buyers = {};
+  db.purchases.forEach(p => {
+    p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
+      if (!buyers[s.buyer]) buyers[s.buyer] = { count: 0, revenue: 0 };
+      buyers[s.buyer].count++;
+      buyers[s.buyer].revenue += s.sellTotal;
+    });
+  });
+  const buyEntries = Object.entries(buyers).sort((a,b) => b[1].revenue - a[1].revenue).slice(0, 10);
+  const buyTb = document.querySelector('#topBuyersTable tbody');
+  buyTb.innerHTML = buyEntries.length
+    ? buyEntries.map(([name, d], i) => {
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
+        return `<tr>
+          <td>${medal}</td><td>${name}</td>
+          <td class="amt">${d.count}</td>
+          <td class="amt">${fmtInt(d.revenue)}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="4" class="empty">No buyers in this period</td></tr>';
+
+  // Insights
+  const insights = [];
+  if (suppEntries.length) insights.push(`🏆 Top supplier: <strong>${suppEntries[0][0]}</strong> (₦${fmtInt(suppEntries[0][1].cost)})`);
+  if (buyEntries.length) insights.push(`🏆 Top buyer: <strong>${buyEntries[0][0]}</strong> (₦${fmtInt(buyEntries[0][1].revenue)})`);
+  if (a.revenue && a.profit) {
+    const margin = (a.profit / a.revenue * 100).toFixed(1);
+    insights.push(`💹 Profit margin: <strong>${margin}%</strong>`);
+  }
+  if (a.stockValue > 0) insights.push(`📦 Stock value currently held: ₦${fmtInt(a.stockValue)}`);
+  if (a.purchasesCount === 0 && a.salesCount === 0) insights.push('No activity in this period yet.');
+  document.getElementById('insights').innerHTML = insights.map(i => `<p style="margin:6px 0">${i}</p>`).join('');
+}
+
+/* ============================================================
+   DATA
+============================================================ */
+function renderDataStats() {
+  const totalPurchases = db.purchases.length;
+  const totalSales = db.purchases.reduce((s, p) => s + p.sales.length, 0);
+  const totalRevenue = db.purchases.reduce((s, p) => s + purchaseRevenue(p), 0);
+  const totalProfit = db.purchases.reduce((s, p) => s + purchaseProfit(p), 0);
+  document.getElementById('dataStats').innerHTML = `
+    <div class="stat"><div class="label">Purchases</div><div class="value">${totalPurchases}</div></div>
+    <div class="stat"><div class="label">Sales</div><div class="value">${totalSales}</div></div>
+    <div class="stat"><div class="label">Total Revenue</div><div class="value pos">₦${fmtInt(totalRevenue)}</div></div>
+    <div class="stat"><div class="label">Total Profit</div><div class="value ${totalProfit >= 0 ? 'pos' : 'neg'}">₦${fmtInt(totalProfit)}</div></div>
+  `;
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mrt-backup-${today()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup downloaded');
+}
+function importData(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.purchases) throw new Error('Invalid backup');
+      if (!confirm('This will overwrite current data. Continue?')) return;
+      db = data; save(); renderAll();
+      toast('Backup restored');
+    } catch(err) { alert('Invalid backup file'); }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+function clearAll() {
+  if (!confirm('Delete ALL data permanently?')) return;
+  if (!confirm('Are you absolutely sure?')) return;
+  db = { purchases: [] }; save(); renderAll();
+  toast('All data cleared');
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+function renderAll() {
+  renderPurchases();
+  renderInventory();
+  renderMineralsSummary();
+  renderSuppliersBuyers();
+  renderDashboard();
+  renderDataStats();
+}
+
+function init() {
+  load();
+  document.getElementById('pDate').value = today();
+  document.getElementById('dashStart').value = today().slice(0,8) + '01';
+  document.getElementById('dashEnd').value = today();
+  renderAll();
+}
+init();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW fail', e));
+  });
+}
+</script>
+</body>
+</html>
