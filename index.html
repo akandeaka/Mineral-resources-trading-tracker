@@ -64,6 +64,7 @@
   .btn-small { padding: 4px 8px; font-size: 0.72rem; }
   .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
   .btn-success { background: var(--green); color: white; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
 
   table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 8px; }
   th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--border); }
@@ -100,19 +101,106 @@
   .empty { text-align: center; color: var(--muted); padding: 20px; font-size: 0.85rem; }
   .mini { font-size: 0.7rem; color: var(--muted); }
 
-  .purchase-block {
-    background: var(--card2); border-radius: 8px; padding: 12px; margin-bottom: 10px;
+  /* AUTH SCREEN */
+  .auth-wrap {
+    max-width: 400px; margin: 40px auto; padding: 20px;
   }
-  .purchase-header {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    gap: 8px; flex-wrap: wrap; margin-bottom: 8px;
+  .auth-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px;
   }
-  .sales-list {
-    margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
+  .auth-card h1 { text-align: center; margin-bottom: 6px; }
+  .auth-card .subtitle { text-align: center; margin-bottom: 20px; }
+  .auth-field { margin-bottom: 12px; }
+  .auth-btn {
+    width: 100%; padding: 12px; margin-top: 8px;
+    background: var(--accent); color: #0f172a; font-weight: 700;
+    font-size: 0.95rem;
   }
+  .auth-error {
+    background: rgba(239,68,68,0.15); border: 1px solid var(--red);
+    color: #fca5a5; padding: 10px; border-radius: 6px; margin-bottom: 12px;
+    font-size: 0.82rem; display: none;
+  }
+  .auth-error.show { display: block; }
+  .auth-info {
+    background: rgba(34,211,238,0.1); border: 1px solid var(--accent);
+    color: var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 16px;
+    font-size: 0.8rem; text-align: center;
+  }
+
+  /* USER BAR */
+  .user-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--card2); padding: 8px 12px; border-radius: 8px;
+    margin-bottom: 10px; font-size: 0.82rem;
+  }
+  .user-bar .email { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-bar button { padding: 6px 12px; font-size: 0.78rem; }
+
+  /* LOADING */
+  .loading {
+    text-align: center; padding: 40px; color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* SYNC STATUS */
+  .sync {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 600;
+  }
+  .sync.online { background: rgba(34,197,94,0.2); color: var(--green); }
+  .sync.offline { background: rgba(234,179,8,0.2); color: var(--yellow); }
+  .sync.syncing { background: rgba(34,211,238,0.2); color: var(--accent); }
 </style>
 </head>
 <body>
+
+<!-- ============== AUTH SCREEN ============== -->
+<div id="authScreen" class="auth-wrap" style="display:none">
+  <div class="auth-card">
+    <h1>⛏️ MRT Tracker</h1>
+    <p class="subtitle">Mineral Resources Trading</p>
+
+    <div class="auth-info">
+      🔒 Invite-only access. Contact admin for your login.
+    </div>
+
+    <div id="authError" class="auth-error"></div>
+
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="auth-field">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="Your password" autocomplete="current-password" />
+    </div>
+
+    <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign In</button>
+
+    <p class="muted" style="text-align:center; margin-top:16px; font-size:0.75rem">
+      Your data is encrypted and stored securely in Google Cloud.
+    </p>
+  </div>
+</div>
+
+<!-- ============== MAIN APP ============== -->
+<div id="mainApp" style="display:none">
+
+<div id="loadingScreen" class="loading">Loading your data...</div>
+
+<div id="appContent" style="display:none">
+
+<div class="user-bar">
+  <div>
+    <div class="email" id="userEmail">—</div>
+    <div class="mini">
+      <span class="sync syncing" id="syncStatus">● Syncing</span>
+    </div>
+  </div>
+  <button class="btn-ghost" onclick="logout()">Logout</button>
+</div>
 
 <h1>⛏️ Mineral Resources Trading Tracker</h1>
 <p class="subtitle">Purchases • Sales • Inventory • Profits</p>
@@ -331,12 +419,11 @@
 <div id="data" class="panel">
   <div class="card">
     <h2>Backup & Restore</h2>
-    <p class="muted">Your data is stored in this browser only. Export regularly.</p>
+    <p class="muted">Your data syncs to the cloud automatically. You can also export a manual backup.</p>
     <div class="actions">
       <button class="btn-primary" onclick="exportData()">⬇️ Export JSON Backup</button>
       <button class="btn-ghost" onclick="document.getElementById('importFile').click()">⬆️ Import Backup</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
-      <button class="btn-danger" onclick="clearAll()">🗑️ Delete All Data</button>
     </div>
   </div>
 
@@ -344,24 +431,59 @@
     <h2>Quick Stats</h2>
     <div id="dataStats" class="grid"></div>
   </div>
+
+  <div class="card">
+    <h2>Account</h2>
+    <p class="muted">Signed in as: <strong id="accountEmail"></strong></p>
+    <p class="muted" style="margin-top:6px">Your data is stored securely in Google Cloud Firestore and only accessible to your account.</p>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn-ghost" onclick="logout()">Logout</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
-<script>
-/* ============================================================
-   DATA LAYER
-============================================================ */
-const KEY = 'mrt_v1';
-let db = { purchases: [] };
 
-function load() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) db = JSON.parse(raw);
-  } catch(e) { console.warn(e); }
-  if (!db.purchases) db.purchases = [];
-}
-function save() { localStorage.setItem(KEY, JSON.stringify(db)); }
+</div><!-- appContent -->
+</div><!-- mainApp -->
+<script type="module">
+/* ============================================================
+   FIREBASE INITIALIZATION
+============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, setDoc, getDoc, enableIndexedDbPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDltIFGJsTad0yqzbNZ5MVXr71PjwdPlfY",
+  authDomain: "mineral-tracker-86031.firebaseapp.com",
+  projectId: "mineral-tracker-86031",
+  storageBucket: "mineral-tracker-86031.firebasestorage.app",
+  messagingSenderId: "213103370804",
+  appId: "1:213103370804:web:d7520bc6157e83ef8ea061"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+
+try { await enableIndexedDbPersistence(firestore); }
+catch (e) { console.warn('Offline persistence:', e.code); }
+
+/* ============================================================
+   GLOBAL STATE
+============================================================ */
+let db = { purchases: [] };
+let currentUser = null;
+let saveTimer = null;
+
+/* ============================================================
+   HELPERS
+============================================================ */
 function uid() { return Math.random().toString(36).slice(2, 10); }
 function today() { return new Date().toISOString().slice(0,10); }
 function fmt(n) {
@@ -377,6 +499,164 @@ function toast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 1800);
 }
+function setSyncStatus(state) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  if (state === 'online') { el.className = 'sync online'; el.textContent = '● Synced'; }
+  else if (state === 'offline') { el.className = 'sync offline'; el.textContent = '● Offline'; }
+  else { el.className = 'sync syncing'; el.textContent = '● Syncing'; }
+}
+
+/* ============================================================
+   AUTH — LOGIN ONLY (sign-up disabled)
+============================================================ */
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+async function submitAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const btn = document.getElementById('authSubmitBtn');
+  document.getElementById('authError').classList.remove('show');
+
+  if (!email || !password) return showAuthError('Enter email and password');
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in...';
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    const msgs = {
+      'auth/invalid-email': 'Invalid email address',
+      'auth/user-not-found': 'No account with that email. Contact admin.',
+      'auth/wrong-password': 'Incorrect password',
+      'auth/invalid-credential': 'Invalid email or password',
+      'auth/too-many-requests': 'Too many attempts. Try again later.',
+      'auth/network-request-failed': 'Network error. Check your internet.',
+      'auth/user-disabled': 'This account has been disabled.',
+      'auth/unauthorized-domain': 'This domain is not authorized. Contact admin.',
+      'auth/admin-restricted-operation': 'Sign-ups are disabled. Contact admin for access.'
+    };
+    showAuthError(msgs[err.code] || err.message);
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+document.getElementById('authPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitAuth();
+});
+document.getElementById('authEmail').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('authPassword').focus();
+});
+
+async function logout() {
+  if (!confirm('Sign out?')) return;
+  await signOut(auth);
+}
+
+/* ============================================================
+   AUTH STATE HANDLER
+============================================================ */
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  if (user) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    document.getElementById('loadingScreen').style.display = 'block';
+    document.getElementById('appContent').style.display = 'none';
+    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('accountEmail').textContent = user.email;
+    await loadFromCloud();
+  } else {
+    document.getElementById('authScreen').style.display = 'block';
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('authEmail').value = '';
+    document.getElementById('authPassword').value = '';
+    const btn = document.getElementById('authSubmitBtn');
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+});
+
+/* ============================================================
+   CLOUD LOAD / SAVE
+============================================================ */
+async function loadFromCloud() {
+  try {
+    setSyncStatus('syncing');
+    const ref = doc(firestore, 'users', currentUser.uid, 'data', 'main');
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      db = snap.data();
+      if (!db.purchases) db.purchases = [];
+      db.purchases.forEach(p => {
+        if (!p.sales) p.sales = [];
+        if (!p.costs) p.costs = {};
+        if (!p.unit) p.unit = 'kg';
+        if (!p.qtyKg) p.qtyKg = p.qty || 0;
+      });
+    } else {
+      // First login for this user: try to migrate from localStorage
+      const localRaw = localStorage.getItem('mrt_v1');
+      if (localRaw) {
+        try {
+          const local = JSON.parse(localRaw);
+          if (local.purchases && local.purchases.length > 0) {
+            if (confirm('We found ' + local.purchases.length + ' purchases saved on this device. Import them into your cloud account? (Recommended)')) {
+              db = local;
+              await saveToCloudNow();
+              localStorage.removeItem('mrt_v1');
+            } else {
+              db = { purchases: [] };
+            }
+          }
+        } catch(e) { console.warn(e); }
+      } else {
+        db = { purchases: [] };
+      }
+    }
+
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+    renderAll();
+    setSyncStatus('online');
+  } catch (err) {
+    console.error('Load error', err);
+    document.getElementById('loadingScreen').innerHTML =
+      'Error loading data: ' + err.message +
+      '<br><br><button class="btn-ghost" onclick="location.reload()">Retry</button>' +
+      '<br><br><button class="btn-ghost" onclick="logout()">Logout</button>';
+    setSyncStatus('offline');
+  }
+}
+
+function saveToCloud() {
+  setSyncStatus('syncing');
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveToCloudNow(), 400);
+}
+
+async function saveToCloudNow() {
+  if (!currentUser) return;
+  try {
+    const ref = doc(firestore, 'users', currentUser.uid, 'data', 'main');
+    await setDoc(ref, db);
+    setSyncStatus('online');
+  } catch (err) {
+    console.error('Save error', err);
+    setSyncStatus('offline');
+    toast('Save failed — check internet');
+  }
+}
+
+window.addEventListener('online', () => { setSyncStatus('online'); saveToCloudNow(); });
+window.addEventListener('offline', () => setSyncStatus('offline'));
 
 /* ============================================================
    WEIGHT CONVERSION
@@ -384,7 +664,7 @@ function toast(msg) {
 function toKg(qty, unit) {
   if (unit === 'lb') return qty * 0.453592;
   if (unit === 'tonne') return qty * 1000;
-  return qty; // kg default
+  return qty;
 }
 function unitLabel(unit) {
   return unit === 'lb' ? 'lb' : unit === 'tonne' ? 'tonne' : 'kg';
@@ -425,7 +705,6 @@ function recalcPurchase() {
   const otherCosts = ['cTransport','cLabour','cEquipment','cSite','cProcessing','cMisc']
     .reduce((s, id) => s + (parseFloat(document.getElementById(id).value) || 0), 0);
 
-  // kg equivalent
   if (qty && unit !== 'kg') {
     document.getElementById('pKgEq').value = toKg(qty, unit).toFixed(2) + ' kg';
   } else if (qty && unit === 'kg') {
@@ -478,11 +757,11 @@ function addPurchase() {
     qty, unit, qtyKg: toKg(qty, unit),
     purchaseCost, costs, totalCost,
     costPerUnit: totalCost / qty,
-    sales: [],  // sales added later
+    sales: [],
     notes: document.getElementById('pNotes').value.trim()
   });
 
-  save();
+  saveToCloud();
   renderAll();
   clearPurchaseForm();
   toast('Purchase saved');
@@ -497,7 +776,7 @@ function deletePurchase(id) {
     if (!confirm('Delete this purchase?')) return;
   }
   db.purchases = db.purchases.filter(x => x.id !== id);
-  save(); renderAll();
+  saveToCloud(); renderAll();
   toast('Purchase deleted');
 }
 
@@ -523,7 +802,7 @@ function addSale(purchaseId) {
     return;
   }
 
-  const costShare = (qtySold / p.qty) * p.totalCost;   // proportional cost
+  const costShare = (qtySold / p.qty) * p.totalCost;
   const profit = sellTotal - costShare;
 
   p.sales.push({
@@ -537,7 +816,7 @@ function addSale(purchaseId) {
     sellPerUnit: sellTotal / qtySold
   });
 
-  save(); renderAll();
+  saveToCloud(); renderAll();
   toast('Sale added');
 }
 
@@ -546,7 +825,7 @@ function deleteSale(purchaseId, saleId) {
   if (!p) return;
   if (!confirm('Delete this sale?')) return;
   p.sales = p.sales.filter(s => s.id !== saleId);
-  save(); renderAll();
+  saveToCloud(); renderAll();
   toast('Sale deleted');
 }
 
@@ -554,16 +833,8 @@ function remainingQty(p) {
   const sold = p.sales.reduce((s, x) => s + x.qty, 0);
   return Math.max(0, p.qty - sold);
 }
-
-function purchaseRevenue(p) {
-  return p.sales.reduce((s, x) => s + x.sellTotal, 0);
-}
-function purchaseProfit(p) {
-  return p.sales.reduce((s, x) => s + x.profit, 0);
-}
-function purchaseCostSold(p) {
-  return p.sales.reduce((s, x) => s + x.costShare, 0);
-}
+function purchaseRevenue(p) { return p.sales.reduce((s, x) => s + x.sellTotal, 0); }
+function purchaseProfit(p) { return p.sales.reduce((s, x) => s + x.profit, 0); }
 
 function toggleSalesDetail(purchaseId) {
   const area = document.getElementById('salesDetailArea');
@@ -660,7 +931,6 @@ function renderInventory() {
     <div class="stat"><div class="label">Stock Value (₦)</div><div class="value">₦${fmtInt(totalInvested)}</div></div>
   `;
 
-  // Group by mineral
   const byMineral = {};
   open.forEach(p => {
     const rem = remainingQty(p);
@@ -753,7 +1023,6 @@ function renderMineralsSummary() {
    RENDER — SUPPLIERS & BUYERS
 ============================================================ */
 function renderSuppliersBuyers() {
-  // Suppliers
   const supp = {};
   db.purchases.forEach(p => {
     if (!p.supplier) return;
@@ -764,10 +1033,8 @@ function renderSuppliersBuyers() {
   });
   const suppTb = document.querySelector('#suppliersTable tbody');
   const suppEntries = Object.entries(supp).sort((a,b) => b[1].cost - a[1].cost);
-  if (!suppEntries.length) {
-    suppTb.innerHTML = '<tr><td colspan="5" class="empty">No suppliers yet</td></tr>';
-  } else {
-    suppTb.innerHTML = suppEntries.map(([name, d]) => `
+  suppTb.innerHTML = suppEntries.length
+    ? suppEntries.map(([name, d]) => `
       <tr>
         <td>${name}</td>
         <td class="amt">${d.count}</td>
@@ -775,10 +1042,9 @@ function renderSuppliersBuyers() {
         <td class="amt">${fmtInt(d.cost / d.count)}</td>
         <td>${d.last}</td>
       </tr>
-    `).join('');
-  }
+    `).join('')
+    : '<tr><td colspan="5" class="empty">No suppliers yet</td></tr>';
 
-  // Buyers
   const buyers = {};
   db.purchases.forEach(p => {
     p.sales.forEach(s => {
@@ -790,10 +1056,8 @@ function renderSuppliersBuyers() {
   });
   const buyTb = document.querySelector('#buyersTable tbody');
   const buyEntries = Object.entries(buyers).sort((a,b) => b[1].revenue - a[1].revenue);
-  if (!buyEntries.length) {
-    buyTb.innerHTML = '<tr><td colspan="5" class="empty">No buyers yet</td></tr>';
-  } else {
-    buyTb.innerHTML = buyEntries.map(([name, d]) => `
+  buyTb.innerHTML = buyEntries.length
+    ? buyEntries.map(([name, d]) => `
       <tr>
         <td>${name}</td>
         <td class="amt">${d.count}</td>
@@ -801,8 +1065,8 @@ function renderSuppliersBuyers() {
         <td class="amt">${fmtInt(d.revenue / d.count)}</td>
         <td>${d.last}</td>
       </tr>
-    `).join('');
-  }
+    `).join('')
+    : '<tr><td colspan="5" class="empty">No buyers yet</td></tr>';
 }
 
 /* ============================================================
@@ -866,8 +1130,6 @@ function aggregate(start, end) {
   const totalSoldKg = allSales.reduce((s, x) => s + toKg(x.sale.qty, x.purchase.unit), 0);
   const revenue = allSales.reduce((s, x) => s + x.sale.sellTotal, 0);
   const profit = allSales.reduce((s, x) => s + x.sale.profit, 0);
-
-  // Current stock value (all-time)
   const open = db.purchases.filter(p => remainingQty(p) > 0.0001);
   const stockValue = open.reduce((s, p) => s + (remainingQty(p) / p.qty) * p.totalCost, 0);
 
@@ -895,7 +1157,6 @@ function renderDashboard() {
     <div class="stat"><div class="label">Stock Value</div><div class="value">₦${fmtInt(a.stockValue)}</div></div>
   `;
 
-  // Profit trend
   const byDate = {};
   db.purchases.forEach(p => {
     p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
@@ -927,7 +1188,6 @@ function renderDashboard() {
     }
   });
 
-  // Weight chart
   const ctx2 = document.getElementById('weightChart').getContext('2d');
   if (weightChart) weightChart.destroy();
   weightChart = new Chart(ctx2, {
@@ -949,7 +1209,6 @@ function renderDashboard() {
     }
   });
 
-  // Top suppliers
   const supp = {};
   db.purchases.filter(p => inRange(p.date, start, end)).forEach(p => {
     if (!p.supplier) return;
@@ -958,19 +1217,13 @@ function renderDashboard() {
     supp[p.supplier].cost += p.totalCost;
   });
   const suppEntries = Object.entries(supp).sort((a,b) => b[1].cost - a[1].cost).slice(0, 10);
-  const suppTb = document.querySelector('#topSuppliersTable tbody');
-  suppTb.innerHTML = suppEntries.length
+  document.querySelector('#topSuppliersTable tbody').innerHTML = suppEntries.length
     ? suppEntries.map(([name, d], i) => {
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
-        return `<tr>
-          <td>${medal}</td><td>${name}</td>
-          <td class="amt">${d.count}</td>
-          <td class="amt">${fmtInt(d.cost)}</td>
-        </tr>`;
+        return `<tr><td>${medal}</td><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.cost)}</td></tr>`;
       }).join('')
     : '<tr><td colspan="4" class="empty">No suppliers in this period</td></tr>';
 
-  // Top buyers
   const buyers = {};
   db.purchases.forEach(p => {
     p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
@@ -980,33 +1233,24 @@ function renderDashboard() {
     });
   });
   const buyEntries = Object.entries(buyers).sort((a,b) => b[1].revenue - a[1].revenue).slice(0, 10);
-  const buyTb = document.querySelector('#topBuyersTable tbody');
-  buyTb.innerHTML = buyEntries.length
+  document.querySelector('#topBuyersTable tbody').innerHTML = buyEntries.length
     ? buyEntries.map(([name, d], i) => {
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
-        return `<tr>
-          <td>${medal}</td><td>${name}</td>
-          <td class="amt">${d.count}</td>
-          <td class="amt">${fmtInt(d.revenue)}</td>
-        </tr>`;
+        return `<tr><td>${medal}</td><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.revenue)}</td></tr>`;
       }).join('')
     : '<tr><td colspan="4" class="empty">No buyers in this period</td></tr>';
 
-  // Insights
   const insights = [];
   if (suppEntries.length) insights.push(`🏆 Top supplier: <strong>${suppEntries[0][0]}</strong> (₦${fmtInt(suppEntries[0][1].cost)})`);
   if (buyEntries.length) insights.push(`🏆 Top buyer: <strong>${buyEntries[0][0]}</strong> (₦${fmtInt(buyEntries[0][1].revenue)})`);
-  if (a.revenue && a.profit) {
-    const margin = (a.profit / a.revenue * 100).toFixed(1);
-    insights.push(`💹 Profit margin: <strong>${margin}%</strong>`);
-  }
+  if (a.revenue && a.profit) insights.push(`💹 Profit margin: <strong>${(a.profit / a.revenue * 100).toFixed(1)}%</strong>`);
   if (a.stockValue > 0) insights.push(`📦 Stock value currently held: ₦${fmtInt(a.stockValue)}`);
   if (a.purchasesCount === 0 && a.salesCount === 0) insights.push('No activity in this period yet.');
   document.getElementById('insights').innerHTML = insights.map(i => `<p style="margin:6px 0">${i}</p>`).join('');
 }
 
 /* ============================================================
-   DATA
+   DATA PANEL
 ============================================================ */
 function renderDataStats() {
   const totalPurchases = db.purchases.length;
@@ -1020,16 +1264,16 @@ function renderDataStats() {
     <div class="stat"><div class="label">Total Profit</div><div class="value ${totalProfit >= 0 ? 'pos' : 'neg'}">₦${fmtInt(totalProfit)}</div></div>
   `;
 }
+
 function exportData() {
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = `mrt-backup-${today()}.json`;
-  a.click();
+  a.href = url; a.download = `mrt-backup-${today()}.json`; a.click();
   URL.revokeObjectURL(url);
   toast('Backup downloaded');
 }
+
 function importData(evt) {
   const file = evt.target.files[0];
   if (!file) return;
@@ -1038,19 +1282,15 @@ function importData(evt) {
     try {
       const data = JSON.parse(e.target.result);
       if (!data.purchases) throw new Error('Invalid backup');
-      if (!confirm('This will overwrite current data. Continue?')) return;
-      db = data; save(); renderAll();
-      toast('Backup restored');
+      if (!confirm('This will OVERWRITE cloud data with this backup. Continue?')) return;
+      db = data;
+      saveToCloudNow();
+      renderAll();
+      toast('Backup imported to cloud');
     } catch(err) { alert('Invalid backup file'); }
   };
   reader.readAsText(file);
   evt.target.value = '';
-}
-function clearAll() {
-  if (!confirm('Delete ALL data permanently?')) return;
-  if (!confirm('Are you absolutely sure?')) return;
-  db = { purchases: [] }; save(); renderAll();
-  toast('All data cleared');
 }
 
 /* ============================================================
@@ -1065,15 +1305,22 @@ function renderAll() {
   renderDataStats();
 }
 
-function init() {
-  load();
-  document.getElementById('pDate').value = today();
-  document.getElementById('dashStart').value = today().slice(0,8) + '01';
-  document.getElementById('dashEnd').value = today();
-  renderAll();
-}
-init();
+// Expose functions to HTML onclick
+window.addPurchase = addPurchase;
+window.clearPurchaseForm = clearPurchaseForm;
+window.deletePurchase = deletePurchase;
+window.addSale = addSale;
+window.deleteSale = deleteSale;
+window.toggleSalesDetail = toggleSalesDetail;
+window.submitAuth = submitAuth;
+window.logout = logout;
+window.exportData = exportData;
+window.importData = importData;
 
+// Set today's date in purchase form
+document.getElementById('pDate').value = today();
+
+// Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW fail', e));
