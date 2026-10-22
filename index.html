@@ -143,16 +143,33 @@
   .insight-box h4 { color: var(--accent); font-size: 0.85rem; margin-bottom: 4px; }
   .insight-box p { font-size: 0.85rem; color: var(--text); }
 
-  /* HIGHLIGHTED BATCH SELECTOR */
-  .batch-selector-box {
-    background: rgba(34,211,238,0.1);
-    border: 2px solid var(--accent);
-    border-radius: 10px;
-    padding: 16px;
+  /* MULTI-SELECT BATCH LIST */
+  .batch-list-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
     margin-bottom: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   }
-  .batch-selector-box select { font-size: 1rem; font-weight: 600; color: var(--accent); }
+  .batch-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .batch-item:hover { background: var(--card2); }
+  .batch-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+  .batch-info { flex: 1; font-size: 0.9rem; }
+  .batch-info strong { color: var(--accent); }
 </style>
 </head>
 <body>
@@ -174,7 +191,7 @@
       <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign In</button>
     </div>
 
-    <!-- Force Password Change Form (Hidden by default) -->
+    <!-- Force Password Change Form -->
     <div id="changePasswordForm" style="display:none;">
       <div class="auth-info" style="background:rgba(234,179,8,0.1); border-color:var(--yellow); color:var(--yellow);">
         ⚠️ Security Requirement: You must change your temporary password before accessing the dashboard.
@@ -339,34 +356,31 @@
   <div class="card">
     <h2>Build New Sale</h2>
     
-    <!-- HIGHLIGHTED BATCH SELECTOR -->
-    <div class="batch-selector-box">
-      <h3 style="color:#fff; margin-bottom:8px;">Step 1: Select Batches to Sell</h3>
-      <div class="row">
-        <div style="flex: 3">
-          <select id="sBatchSelect"></select>
-        </div>
-        <div style="flex: 1">
-          <input type="number" id="sBatchQty" step="0.01" placeholder="Qty" />
-        </div>
-        <div style="flex: 1">
-          <button class="btn-primary" onclick="addBatchToSale()" style="width:100%; font-size:0.9rem;">➕ Add Item</button>
-        </div>
-      </div>
+    <h3 style="color:#fff; margin-bottom:8px;">Step 1: Select Materials to Sell</h3>
+    <p class="muted" style="margin-bottom:10px">Check the boxes for the batches you are selling together.</p>
+    
+    <!-- VISUAL CHECKBOX LIST -->
+    <div class="batch-list-container" id="batchChecklist">
+      <!-- Injected via JS -->
     </div>
 
-    <!-- MULTI-BATCH CART -->
+    <div class="actions" style="margin-bottom:20px;">
+      <button class="btn-primary" onclick="stageSelectedBatches()" style="width:100%;">⬇️ Add Selected Materials to Sale</button>
+    </div>
+
+    <hr style="border-color:var(--border); margin:20px 0;" />
+
+    <h3>Step 2: Sale Details</h3>
     <div class="card scroll" style="background:var(--bg); border-color:var(--accent); margin-bottom:16px;">
       <table id="saleCartTable">
         <thead><tr>
-          <th>Mineral</th><th>Supplier</th><th class="amt">Qty</th><th class="amt">Cost Value</th><th></th>
+          <th>Mineral</th><th>Supplier</th><th class="amt">Available Qty</th><th class="amt">Qty to Sell</th><th></th>
         </tr></thead>
         <tbody></tbody>
       </table>
       <div id="saleCartTotal" style="text-align:right; margin-top:10px; font-weight:bold; font-size:1.1rem; color:var(--accent);"></div>
     </div>
 
-    <h3>Step 2: Sale Details & Expenses</h3>
     <div class="row">
       <div><label>Date of Sale</label><input type="date" id="sDate" /></div>
       <div><label>Buyer Name</label><input type="text" id="sBuyer" placeholder="Buyer / Company" /></div>
@@ -598,7 +612,6 @@ async function submitAuth() {
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
-    // onAuthStateChanged will handle the rest
   } catch (err) {
     const msgs = {
       'auth/invalid-email': 'Invalid email address',
@@ -619,7 +632,6 @@ async function submitPasswordChange() {
   const btn = document.getElementById('changePassBtn');
   document.getElementById('authError').classList.remove('show');
 
-  // Standardization Check
   if (newPass.length < 8) return showAuthError('Password must be at least 8 characters long.');
   if (!/[A-Z]/.test(newPass)) return showAuthError('Password must contain at least one uppercase letter.');
   if (!/[0-9]/.test(newPass)) return showAuthError('Password must contain at least one number.');
@@ -630,7 +642,6 @@ async function submitPasswordChange() {
 
   try {
     await updatePassword(currentUser, newPass);
-    // Update Firestore so they don't get prompted again
     await setDoc(doc(firestore, 'users', currentUser.uid, 'profile', 'main'), { requiresChange: false }, { merge: true });
     
     requiresPasswordChange = false;
@@ -638,7 +649,6 @@ async function submitPasswordChange() {
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('authPassword').value = '';
     
-    // Now load the app
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
     await loadFromCloud();
@@ -661,13 +671,12 @@ async function logout() {
 }
 
 /* ============================================================
-   AUTH STATE HANDLER (CHECKS FOR PASSWORD CHANGE)
+   AUTH STATE HANDLER
 ============================================================ */
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   
   if (user) {
-    // Check if user needs to change password
     const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
     const profileSnap = await getDoc(profileRef);
     
@@ -682,7 +691,6 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
 
-    // Normal Login Flow
     requiresPasswordChange = false;
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
@@ -690,7 +698,6 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('appContent').style.display = 'none';
     document.getElementById('userEmail').textContent = user.email;
     
-    // Show Admin Tab only for you
     if (user.email === 'akpee2003@yahoo.com') {
       document.getElementById('adminTab').style.display = 'block';
     } else {
@@ -734,21 +741,14 @@ async function createNewUser() {
   statusEl.innerHTML = '<span style="color:var(--yellow)">Creating user... (Do not close the app)</span>';
 
   try {
-    // 1. Create the new user (this logs the admin out temporarily)
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    
-    // 2. Mark their profile as requiring a password change
     await setDoc(doc(firestore, 'users', userCredential.user.uid, 'profile', 'main'), { 
       requiresChange: true,
       email: email
     });
-    
-    // 3. Immediately sign the new user out
     await signOut(auth);
-    
     statusEl.innerHTML = '<span style="color:var(--green)">✅ User created successfully! You have been logged out for security. Please log back in.</span>';
     toast('User created. Please log back in.');
-    
   } catch (err) {
     statusEl.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
     if (!currentUser) location.reload();
@@ -976,53 +976,98 @@ function addPurchase() {
 }
 
 /* ============================================================
-   SALES PORTAL LOGIC (MULTI-BATCH CART)
+   SALES PORTAL LOGIC (VISUAL CHECKLIST)
 ============================================================ */
 function renderSalesPortal() {
-  const select = document.getElementById('sBatchSelect');
-  select.innerHTML = '<option value="">-- Select a batch with stock --</option>';
+  const container = document.getElementById('batchChecklist');
+  container.innerHTML = '';
   
-  db.purchases.filter(p => remainingQty(p) > 0.0001).forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = `${p.mineral} | ${p.supplier || 'No Supplier'} | Rem: ${remainingQty(p).toFixed(2)} ${unitLabel(p.unit)}`;
-    select.appendChild(opt);
-  });
+  const availableBatches = db.purchases.filter(p => remainingQty(p) > 0.0001);
+  
+  if (!availableBatches.length) {
+    container.innerHTML = '<div class="empty">No batches available with stock.</div>';
+  } else {
+    availableBatches.forEach(p => {
+      const div = document.createElement('label');
+      div.className = 'batch-item';
+      div.innerHTML = `
+        <input type="checkbox" class="batch-checkbox" value="${p.id}" data-qty="${remainingQty(p)}" data-unit="${p.unit}">
+        <div class="batch-info">
+          <strong>${p.mineral}</strong> | Supplier: ${p.supplier || '—'}<br>
+          <span class="muted">Available: ${remainingQty(p).toFixed(2)} ${unitLabel(p.unit)}</span>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
 
   renderSaleCart();
   renderAllSalesHistory();
 }
 
-function addBatchToSale() {
-  const id = document.getElementById('sBatchSelect').value;
-  const qty = parseFloat(document.getElementById('sBatchQty').value) || 0;
+function stageSelectedBatches() {
+  const checkboxes = document.querySelectorAll('.batch-checkbox:checked');
   
-  if (!id) return toast('Select a batch first');
-  if (!qty || qty <= 0) return toast('Enter a valid quantity');
-
-  const p = db.purchases.find(x => x.id === id);
-  if (!p) return;
-  
-  if (qty > remainingQty(p) + 0.0001) return toast(`Cannot sell more than ${remainingQty(p).toFixed(2)} available`);
-
-  // Check if item already in cart
-  const existing = currentSaleCart.find(c => c.purchaseId === id);
-  if (existing) {
-    if (existing.qty + qty > remainingQty(p) + 0.0001) return toast(`Total exceeds available stock`);
-    existing.qty += qty;
-    existing.costOfGoods = (existing.qty / p.qty) * p.totalCost;
-  } else {
-    currentSaleCart.push({
-      purchaseId: id,
-      mineral: p.mineral,
-      supplier: p.supplier || '—',
-      qty: qty,
-      unit: p.unit,
-      costOfGoods: (qty / p.qty) * p.totalCost
-    });
+  if (checkboxes.length === 0) {
+    return toast('Please check at least one batch to sell.');
   }
 
-  document.getElementById('sBatchQty').value = '';
+  let addedCount = 0;
+
+  checkboxes.forEach(cb => {
+    const id = cb.value;
+    const qty = parseFloat(cb.getAttribute('data-qty')); // Default to full available qty
+    
+    // Check if already in cart
+    const existing = currentSaleCart.find(c => c.purchaseId === id);
+    if (!existing) {
+      const p = db.purchases.find(x => x.id === id);
+      if (p) {
+        currentSaleCart.push({
+          purchaseId: id,
+          mineral: p.mineral,
+          supplier: p.supplier || '—',
+          qty: qty, // We stage the full quantity, user can adjust down
+          availableQty: qty,
+          unit: p.unit,
+          costOfGoods: (qty / p.qty) * p.totalCost
+        });
+        addedCount++;
+      }
+    }
+  });
+
+  // Uncheck all boxes after staging
+  document.querySelectorAll('.batch-checkbox').forEach(cb => cb.checked = false);
+
+  if (addedCount > 0) {
+    toast(`Added ${addedCount} batch(es) to the sale.`);
+  } else {
+    toast('Those batches are already in the list.');
+  }
+  
+  renderSaleCart();
+}
+
+function updateCartQty(index, newQty) {
+  const item = currentSaleCart[index];
+  if (!item) return;
+  
+  if (newQty <= 0) {
+    currentSaleCart.splice(index, 1);
+  } else if (newQty > item.availableQty) {
+    toast(`Cannot exceed available quantity (${item.availableQty})`);
+    item.qty = item.availableQty;
+  } else {
+    item.qty = newQty;
+  }
+  
+  // Recalculate cost of goods for this item
+  const p = db.purchases.find(x => x.id === item.purchaseId);
+  if (p) {
+    item.costOfGoods = (item.qty / p.qty) * p.totalCost;
+  }
+  
   renderSaleCart();
 }
 
@@ -1036,7 +1081,7 @@ function renderSaleCart() {
   tb.innerHTML = '';
   
   if (!currentSaleCart.length) {
-    tb.innerHTML = '<tr><td colspan="6" class="empty">No items added yet</td></tr>';
+    tb.innerHTML = '<tr><td colspan="5" class="empty">No materials selected yet</td></tr>';
     document.getElementById('saleCartTotal').innerHTML = '';
     recalcSaleForm();
     return;
@@ -1051,8 +1096,11 @@ function renderSaleCart() {
     tr.innerHTML = `
       <td>${item.mineral}</td>
       <td>${item.supplier}</td>
-      <td class="amt">${item.qty} ${unitLabel(item.unit)}</td>
-      <td class="amt">₦${fmt(item.costOfGoods)}</td>
+      <td class="amt">${item.availableQty.toFixed(2)} ${unitLabel(item.unit)}</td>
+      <td class="amt">
+        <input type="number" value="${item.qty}" step="0.01" style="width:80px; text-align:right;" 
+               onchange="updateCartQty(${index}, parseFloat(this.value))">
+      </td>
       <td><button class="btn-danger btn-small" onclick="removeBatchFromSale(${index})">✕</button></td>
     `;
     tb.appendChild(tr);
@@ -1108,7 +1156,6 @@ function submitSale() {
   const netProfit = sellTotal - totalCostOfGoods - totalExpenses;
   const saleId = uid();
 
-  // Deduct stock from each batch
   currentSaleCart.forEach(cartItem => {
     const p = db.purchases.find(x => x.id === cartItem.purchaseId);
     if (p) {
@@ -1576,7 +1623,8 @@ window.submitPasswordChange = submitPasswordChange;
 window.logout = logout;
 window.exportData = exportData;
 window.importData = importData;
-window.addBatchToSale = addBatchToSale;
+window.stageSelectedBatches = stageSelectedBatches;
+window.updateCartQty = updateCartQty;
 window.removeBatchFromSale = removeBatchFromSale;
 window.recalcSaleForm = recalcSaleForm;
 window.submitSale = submitSale;
