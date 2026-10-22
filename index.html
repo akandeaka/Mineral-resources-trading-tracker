@@ -101,9 +101,9 @@
 
   /* AUTH SCREEN */
   .auth-wrap { max-width: 400px; margin: 40px auto; padding: 20px; position: relative; }
-  .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; padding-top: 60px; }
-  .auth-card h1 { text-align: center; margin-bottom: 6px; }
-  .auth-card .subtitle { text-align: center; margin-bottom: 20px; }
+  .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .auth-card h1 { text-align: left; margin-bottom: 6px; }
+  .auth-card .subtitle { text-align: left; margin-bottom: 20px; }
   .auth-field { margin-bottom: 12px; }
   .auth-btn { width: 100%; padding: 12px; margin-top: 8px; background: var(--accent); color: #0f172a; font-weight: 700; font-size: 0.95rem; }
   .auth-error { background: rgba(239,68,68,0.15); border: 1px solid var(--red); color: #fca5a5; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 0.82rem; display: none; }
@@ -111,7 +111,7 @@
   .auth-info { background: rgba(34,211,238,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 16px; font-size: 0.8rem; text-align: center; }
   
   /* LOGO STYLES */
-  .login-logo { position: absolute; top: 10px; left: 10px; width: 50px; height: 50px; object-fit: contain; border-radius: 8px; }
+  .login-logo { display: block; width: 60px; height: 60px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; }
 
   /* USER BAR */
   .user-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card2); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.82rem; }
@@ -142,24 +142,53 @@
   .insight-box { background: rgba(34,211,238,0.05); border-left: 4px solid var(--accent); padding: 12px; border-radius: 6px; margin-bottom: 10px; }
   .insight-box h4 { color: var(--accent); font-size: 0.85rem; margin-bottom: 4px; }
   .insight-box p { font-size: 0.85rem; color: var(--text); }
+
+  /* HIGHLIGHTED BATCH SELECTOR */
+  .batch-selector-box {
+    background: rgba(34,211,238,0.1);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .batch-selector-box select { font-size: 1rem; font-weight: 600; color: var(--accent); }
 </style>
 </head>
 <body>
 
+<!-- ============== AUTH SCREEN ============== -->
 <div id="authScreen" class="auth-wrap" style="display:none">
   <div class="auth-card">
     <img src="logo.jpg" alt="Logo" class="login-logo" />
     <h1>⛏️ MRT Tracker</h1>
     <p class="subtitle">Mineral Resources Trading</p>
-    <div class="auth-info">🔒 Invite-only access. Contact admin for your login.</div>
+    
     <div id="authError" class="auth-error"></div>
-    <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" /></div>
-    <div class="auth-field"><label>Password</label><input type="password" id="authPassword" placeholder="Your password" autocomplete="current-password" /></div>
-    <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign In</button>
+    
+    <!-- Standard Login Form -->
+    <div id="loginForm">
+      <div class="auth-info">🔒 Invite-only access. Contact admin for your login.</div>
+      <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" /></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="authPassword" placeholder="Your password" autocomplete="current-password" /></div>
+      <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign In</button>
+    </div>
+
+    <!-- Force Password Change Form (Hidden by default) -->
+    <div id="changePasswordForm" style="display:none;">
+      <div class="auth-info" style="background:rgba(234,179,8,0.1); border-color:var(--yellow); color:var(--yellow);">
+        ⚠️ Security Requirement: You must change your temporary password before accessing the dashboard.
+      </div>
+      <div class="auth-field"><label>New Password</label><input type="password" id="newPassword" placeholder="Min 8 chars, 1 uppercase, 1 number" /></div>
+      <div class="auth-field"><label>Confirm New Password</label><input type="password" id="confirmPassword" placeholder="Type new password again" /></div>
+      <button class="auth-btn" id="changePassBtn" onclick="submitPasswordChange()" style="background:var(--yellow);">Update Password</button>
+    </div>
+
     <p class="muted" style="text-align:center; margin-top:16px; font-size:0.75rem">Your data is encrypted and stored securely in Google Cloud.</p>
   </div>
 </div>
 
+<!-- ============== MAIN APP ============== -->
 <div id="mainApp" style="display:none">
 <div id="loadingScreen" class="loading">Loading your data...</div>
 <div id="appContent" style="display:none">
@@ -183,6 +212,7 @@
   <div class="tab" data-tab="minerals">🧾 By Mineral</div>
   <div class="tab" data-tab="suppliers">👤 Suppliers & Buyers</div>
   <div class="tab" data-tab="data">⚙️ Data</div>
+  <div class="tab" data-tab="admin" id="adminTab" style="display:none; background:var(--yellow); color:#000;">🔑 Admin Panel</div>
 </div>
 
 <!-- ================= DASHBOARD ================= -->
@@ -309,34 +339,38 @@
   <div class="card">
     <h2>Build New Sale</h2>
     
-    <div class="row" style="background:var(--card2); padding:10px; border-radius:8px; margin-bottom:10px;">
-      <div style="flex: 2">
-        <label>Select Available Batch</label>
-        <select id="sBatchSelect"></select>
-      </div>
-      <div style="flex: 1">
-        <label>Qty to Sell</label>
-        <input type="number" id="sBatchQty" step="0.01" placeholder="0" />
-      </div>
-      <div style="flex: 1">
-        <button class="btn-primary" onclick="addBatchToSale()" style="width:100%">➕ Add Item</button>
+    <!-- HIGHLIGHTED BATCH SELECTOR -->
+    <div class="batch-selector-box">
+      <h3 style="color:#fff; margin-bottom:8px;">Step 1: Select Batches to Sell</h3>
+      <div class="row">
+        <div style="flex: 3">
+          <select id="sBatchSelect"></select>
+        </div>
+        <div style="flex: 1">
+          <input type="number" id="sBatchQty" step="0.01" placeholder="Qty" />
+        </div>
+        <div style="flex: 1">
+          <button class="btn-primary" onclick="addBatchToSale()" style="width:100%; font-size:0.9rem;">➕ Add Item</button>
+        </div>
       </div>
     </div>
 
-    <div class="card scroll" style="background:var(--bg); margin-bottom:16px;">
+    <!-- MULTI-BATCH CART -->
+    <div class="card scroll" style="background:var(--bg); border-color:var(--accent); margin-bottom:16px;">
       <table id="saleCartTable">
         <thead><tr>
-          <th>Mineral</th><th>Supplier</th><th class="amt">Qty</th><th class="amt">Unit Price</th><th class="amt">Total Price</th><th></th>
+          <th>Mineral</th><th>Supplier</th><th class="amt">Qty</th><th class="amt">Cost Value</th><th></th>
         </tr></thead>
         <tbody></tbody>
       </table>
-      <div id="saleCartTotal" class="muted" style="text-align:right; margin-top:10px; font-weight:bold;"></div>
+      <div id="saleCartTotal" style="text-align:right; margin-top:10px; font-weight:bold; font-size:1.1rem; color:var(--accent);"></div>
     </div>
 
-    <h3>Sale Details</h3>
+    <h3>Step 2: Sale Details & Expenses</h3>
     <div class="row">
       <div><label>Date of Sale</label><input type="date" id="sDate" /></div>
       <div><label>Buyer Name</label><input type="text" id="sBuyer" placeholder="Buyer / Company" /></div>
+      <div><label>Total Selling Price (₦)</label><input type="number" id="sSellTotal" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
     </div>
 
     <h3 style="margin-top:14px">Sales Expenses (₦)</h3>
@@ -422,6 +456,24 @@
   </div>
 </div>
 
+<!-- ================= ADMIN PANEL ================= -->
+<div id="admin" class="panel">
+  <div class="card">
+    <h2>Admin: Create New User</h2>
+    <p class="muted" style="margin-bottom:12px">Only you can see this. Create logins for your staff or partners here. They will be forced to change the temporary password upon first login.</p>
+    
+    <div class="row">
+      <div><label>New User Email</label><input type="email" id="newUserEmail" placeholder="staff@example.com" /></div>
+      <div><label>Temp Password</label><input type="text" id="newUserPass" placeholder="Min 6 chars" /></div>
+    </div>
+    
+    <div class="actions">
+      <button class="btn-primary" onclick="createNewUser()">➕ Create User</button>
+    </div>
+    <div id="adminStatus" style="margin-top:10px; font-weight:bold;"></div>
+  </div>
+</div>
+
 <!-- ================= DATA ================= -->
 <div id="data" class="panel">
   <div class="card">
@@ -444,7 +496,8 @@
 ============================================================ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
+  createUserWithEmailAndPassword, updatePassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, getDoc, enableIndexedDbPersistence
@@ -473,7 +526,8 @@ let db = { purchases: [] };
 let currentUser = null;
 let saveTimer = null;
 let customExpenseCounters = { purchase: 0, sale: 0 };
-let currentSaleCart = []; // Holds batches being sold in the current transaction
+let currentSaleCart = []; 
+let requiresPasswordChange = false;
 
 /* ============================================================
    AUTO LOGOUT ON INACTIVITY (5 MINUTES)
@@ -523,7 +577,7 @@ function setSyncStatus(state) {
 }
 
 /* ============================================================
-   AUTH
+   AUTHENTICATION & PASSWORD CHANGE
 ============================================================ */
 function showAuthError(msg) {
   const el = document.getElementById('authError');
@@ -544,13 +598,13 @@ async function submitAuth() {
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
+    // onAuthStateChanged will handle the rest
   } catch (err) {
     const msgs = {
       'auth/invalid-email': 'Invalid email address',
-      'auth/user-not-found': 'No account with that email. Contact admin.',
+      'auth/user-not-found': 'No account with that email.',
       'auth/wrong-password': 'Incorrect password',
       'auth/invalid-credential': 'Invalid email or password',
-      'auth/too-many-requests': 'Too many attempts. Try again later.',
       'auth/network-request-failed': 'Network error. Check your internet.'
     };
     showAuthError(msgs[err.code] || err.message);
@@ -559,11 +613,46 @@ async function submitAuth() {
   }
 }
 
+async function submitPasswordChange() {
+  const newPass = document.getElementById('newPassword').value;
+  const confirmPass = document.getElementById('confirmPassword').value;
+  const btn = document.getElementById('changePassBtn');
+  document.getElementById('authError').classList.remove('show');
+
+  // Standardization Check
+  if (newPass.length < 8) return showAuthError('Password must be at least 8 characters long.');
+  if (!/[A-Z]/.test(newPass)) return showAuthError('Password must contain at least one uppercase letter.');
+  if (!/[0-9]/.test(newPass)) return showAuthError('Password must contain at least one number.');
+  if (newPass !== confirmPass) return showAuthError('Passwords do not match.');
+
+  btn.disabled = true;
+  btn.textContent = 'Updating...';
+
+  try {
+    await updatePassword(currentUser, newPass);
+    // Update Firestore so they don't get prompted again
+    await setDoc(doc(firestore, 'users', currentUser.uid, 'profile', 'main'), { requiresChange: false }, { merge: true });
+    
+    requiresPasswordChange = false;
+    document.getElementById('changePasswordForm').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('authPassword').value = '';
+    
+    // Now load the app
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    await loadFromCloud();
+    toast('Password updated successfully!');
+    
+  } catch (err) {
+    showAuthError(err.message);
+    btn.disabled = false;
+    btn.textContent = 'Update Password';
+  }
+}
+
 document.getElementById('authPassword').addEventListener('keydown', e => {
   if (e.key === 'Enter') submitAuth();
-});
-document.getElementById('authEmail').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('authPassword').focus();
 });
 
 async function logout() {
@@ -572,22 +661,51 @@ async function logout() {
 }
 
 /* ============================================================
-   AUTH STATE HANDLER
+   AUTH STATE HANDLER (CHECKS FOR PASSWORD CHANGE)
 ============================================================ */
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
+  
   if (user) {
+    // Check if user needs to change password
+    const profileRef = doc(firestore, 'users', user.uid, 'profile', 'main');
+    const profileSnap = await getDoc(profileRef);
+    
+    if (profileSnap.exists() && profileSnap.data().requiresChange === true) {
+      requiresPasswordChange = true;
+      document.getElementById('authScreen').style.display = 'block';
+      document.getElementById('mainApp').style.display = 'none';
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('changePasswordForm').style.display = 'block';
+      document.getElementById('changePassBtn').disabled = false;
+      document.getElementById('changePassBtn').textContent = 'Update Password';
+      return;
+    }
+
+    // Normal Login Flow
+    requiresPasswordChange = false;
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
     document.getElementById('loadingScreen').style.display = 'block';
     document.getElementById('appContent').style.display = 'none';
     document.getElementById('userEmail').textContent = user.email;
+    
+    // Show Admin Tab only for you
+    if (user.email === 'akpee2003@yahoo.com') {
+      document.getElementById('adminTab').style.display = 'block';
+    } else {
+      document.getElementById('adminTab').style.display = 'none';
+    }
+
     resetInactivityTimer();
     await loadFromCloud();
+    
   } else {
     clearTimeout(inactivityTimer);
     document.getElementById('authScreen').style.display = 'block';
     document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('changePasswordForm').style.display = 'none';
     document.getElementById('authEmail').value = '';
     document.getElementById('authPassword').value = '';
     const btn = document.getElementById('authSubmitBtn');
@@ -595,6 +713,47 @@ onAuthStateChanged(auth, async (user) => {
     btn.textContent = 'Sign In';
   }
 });
+
+/* ============================================================
+   ADMIN: CREATE NEW USER
+============================================================ */
+async function createNewUser() {
+  const email = document.getElementById('newUserEmail').value.trim();
+  const pass = document.getElementById('newUserPass').value;
+  const statusEl = document.getElementById('adminStatus');
+  
+  if (!email || !pass) {
+    statusEl.innerHTML = '<span style="color:var(--red)">Please enter email and password.</span>';
+    return;
+  }
+  if (pass.length < 6) {
+    statusEl.innerHTML = '<span style="color:var(--red)">Temp password must be at least 6 characters.</span>';
+    return;
+  }
+
+  statusEl.innerHTML = '<span style="color:var(--yellow)">Creating user... (Do not close the app)</span>';
+
+  try {
+    // 1. Create the new user (this logs the admin out temporarily)
+    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    
+    // 2. Mark their profile as requiring a password change
+    await setDoc(doc(firestore, 'users', userCredential.user.uid, 'profile', 'main'), { 
+      requiresChange: true,
+      email: email
+    });
+    
+    // 3. Immediately sign the new user out
+    await signOut(auth);
+    
+    statusEl.innerHTML = '<span style="color:var(--green)">✅ User created successfully! You have been logged out for security. Please log back in.</span>';
+    toast('User created. Please log back in.');
+    
+  } catch (err) {
+    statusEl.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
+    if (!currentUser) location.reload();
+  }
+}
 
 /* ============================================================
    CLOUD LOAD / SAVE
@@ -612,7 +771,6 @@ function migrateData(p) {
     if (!s.totalExpenses) {
       s.totalExpenses = Object.values(s.costs).reduce((a,b)=>a+b,0) + s.customExpenses.reduce((a,b)=>a+b.amount,0);
     }
-    // Ensure multi-item sales are formatted correctly
     if (!s.items && s.qty) {
       s.items = [{ purchaseId: p.id, mineral: p.mineral, supplier: p.supplier, qty: s.qty, unit: p.unit }];
     }
@@ -852,6 +1010,7 @@ function addBatchToSale() {
   if (existing) {
     if (existing.qty + qty > remainingQty(p) + 0.0001) return toast(`Total exceeds available stock`);
     existing.qty += qty;
+    existing.costOfGoods = (existing.qty / p.qty) * p.totalCost;
   } else {
     currentSaleCart.push({
       purchaseId: id,
@@ -894,7 +1053,6 @@ function renderSaleCart() {
       <td>${item.supplier}</td>
       <td class="amt">${item.qty} ${unitLabel(item.unit)}</td>
       <td class="amt">₦${fmt(item.costOfGoods)}</td>
-      <td class="amt">—</td>
       <td><button class="btn-danger btn-small" onclick="removeBatchFromSale(${index})">✕</button></td>
     `;
     tb.appendChild(tr);
@@ -955,13 +1113,13 @@ function submitSale() {
     const p = db.purchases.find(x => x.id === cartItem.purchaseId);
     if (p) {
       p.sales.push({
-        id: saleId, // All items in cart share the same sale receipt ID
+        id: saleId, 
         date, buyer, 
-        items: currentSaleCart, // Save the whole cart
+        items: currentSaleCart, 
         sellTotal, costs, customExpenses,
         totalExpenses, costOfGoods: totalCostOfGoods, profit: netProfit, 
-        qty: cartItem.qty, // The specific qty for this batch
-        sellPerUnit: sellTotal / currentSaleCart.reduce((s,c)=>s+c.qty,0) // Avg price
+        qty: cartItem.qty, 
+        sellPerUnit: sellTotal / currentSaleCart.reduce((s,c)=>s+c.qty,0) 
       });
     }
   });
@@ -983,7 +1141,6 @@ function submitSale() {
 function deleteSale(saleId) {
   if (!confirm('Delete this entire sale? This will return the stock to inventory.')) return;
   
-  // Find all purchases containing this saleId and remove them
   db.purchases.forEach(p => {
     p.sales = p.sales.filter(s => s.id !== saleId);
   });
@@ -996,7 +1153,6 @@ function renderAllSalesHistory() {
   const tb = document.querySelector('#allSalesTable tbody');
   tb.innerHTML = '';
   
-  // Group by saleId (receipt)
   const receipts = {};
   db.purchases.forEach(p => {
     p.sales.forEach(s => {
@@ -1016,7 +1172,6 @@ function renderAllSalesHistory() {
   allSales.forEach(s => {
     const tr = document.createElement('tr');
     
-    // Calculate total weight
     let weightSum = { kg: 0, lb: 0, tonne: 0 };
     s.items.forEach(i => { weightSum[i.unit] += i.qty; });
     let wStr = [];
@@ -1417,6 +1572,7 @@ window.clearPurchaseForm = clearPurchaseForm;
 window.addCustomExpenseRow = addCustomExpenseRow;
 window.removeCustomExpenseRow = removeCustomExpenseRow;
 window.submitAuth = submitAuth;
+window.submitPasswordChange = submitPasswordChange;
 window.logout = logout;
 window.exportData = exportData;
 window.importData = importData;
@@ -1427,6 +1583,7 @@ window.submitSale = submitSale;
 window.deleteSale = deleteSale;
 window.viewPurchaseDetail = viewPurchaseDetail;
 window.recalcForm = recalcForm;
+window.createNewUser = createNewUser;
 
 document.getElementById('pDate').value = today();
 document.getElementById('sDate').value = today();
