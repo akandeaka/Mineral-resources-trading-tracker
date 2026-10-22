@@ -100,8 +100,8 @@
   .mini { font-size: 0.7rem; color: var(--muted); }
 
   /* AUTH SCREEN */
-  .auth-wrap { max-width: 400px; margin: 40px auto; padding: 20px; }
-  .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .auth-wrap { max-width: 400px; margin: 40px auto; padding: 20px; position: relative; }
+  .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; padding-top: 60px; }
   .auth-card h1 { text-align: center; margin-bottom: 6px; }
   .auth-card .subtitle { text-align: center; margin-bottom: 20px; }
   .auth-field { margin-bottom: 12px; }
@@ -109,6 +109,9 @@
   .auth-error { background: rgba(239,68,68,0.15); border: 1px solid var(--red); color: #fca5a5; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 0.82rem; display: none; }
   .auth-error.show { display: block; }
   .auth-info { background: rgba(34,211,238,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 16px; font-size: 0.8rem; text-align: center; }
+  
+  /* LOGO STYLES */
+  .login-logo { position: absolute; top: 10px; left: 10px; width: 50px; height: 50px; object-fit: contain; border-radius: 8px; }
 
   /* USER BAR */
   .user-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card2); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.82rem; }
@@ -145,18 +148,13 @@
 
 <div id="authScreen" class="auth-wrap" style="display:none">
   <div class="auth-card">
+    <img src="logo.jpg" alt="Logo" class="login-logo" />
     <h1>⛏️ MRT Tracker</h1>
     <p class="subtitle">Mineral Resources Trading</p>
     <div class="auth-info">🔒 Invite-only access. Contact admin for your login.</div>
     <div id="authError" class="auth-error"></div>
-    <div class="auth-field">
-      <label>Email</label>
-      <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" />
-    </div>
-    <div class="auth-field">
-      <label>Password</label>
-      <input type="password" id="authPassword" placeholder="Your password" autocomplete="current-password" />
-    </div>
+    <div class="auth-field"><label>Email</label><input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" /></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="authPassword" placeholder="Your password" autocomplete="current-password" /></div>
     <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign In</button>
     <p class="muted" style="text-align:center; margin-top:16px; font-size:0.75rem">Your data is encrypted and stored securely in Google Cloud.</p>
   </div>
@@ -194,7 +192,7 @@
       <div>
         <label>Period</label>
         <select id="dashPeriod">
-          <option value="daily">Today</option>
+          <option value="daily">Daily (Today)</option>
           <option value="week">This Week</option>
           <option value="month" selected>This Month</option>
           <option value="year">This Year</option>
@@ -304,26 +302,41 @@
       <tbody></tbody>
     </table>
   </div>
-  <div id="salesDetailArea"></div>
 </div>
 
 <!-- ================= SALES PORTAL ================= -->
 <div id="sales" class="panel">
   <div class="card">
-    <h2>Add New Sale</h2>
-    <div class="row">
-      <div>
-        <label>Select Purchase Batch</label>
-        <select id="sPurchaseId" onchange="updateSaleFormInfo()"></select>
+    <h2>Build New Sale</h2>
+    
+    <div class="row" style="background:var(--card2); padding:10px; border-radius:8px; margin-bottom:10px;">
+      <div style="flex: 2">
+        <label>Select Available Batch</label>
+        <select id="sBatchSelect"></select>
       </div>
+      <div style="flex: 1">
+        <label>Qty to Sell</label>
+        <input type="number" id="sBatchQty" step="0.01" placeholder="0" />
+      </div>
+      <div style="flex: 1">
+        <button class="btn-primary" onclick="addBatchToSale()" style="width:100%">➕ Add Item</button>
+      </div>
+    </div>
+
+    <div class="card scroll" style="background:var(--bg); margin-bottom:16px;">
+      <table id="saleCartTable">
+        <thead><tr>
+          <th>Mineral</th><th>Supplier</th><th class="amt">Qty</th><th class="amt">Unit Price</th><th class="amt">Total Price</th><th></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <div id="saleCartTotal" class="muted" style="text-align:right; margin-top:10px; font-weight:bold;"></div>
+    </div>
+
+    <h3>Sale Details</h3>
+    <div class="row">
       <div><label>Date of Sale</label><input type="date" id="sDate" /></div>
       <div><label>Buyer Name</label><input type="text" id="sBuyer" placeholder="Buyer / Company" /></div>
-    </div>
-    
-    <div class="row" style="margin-top:8px">
-      <div><label>Quantity to Sell</label><input type="number" id="sQty" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
-      <div><label>Available Stock</label><input type="text" id="sAvailableStock" readonly placeholder="—" /></div>
-      <div><label>Total Selling Price (₦)</label><input type="number" id="sSellTotal" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
     </div>
 
     <h3 style="margin-top:14px">Sales Expenses (₦)</h3>
@@ -342,13 +355,13 @@
       <div id="sCustomExpenseList"></div>
     </div>
 
-    <div class="row" style="margin-top:12px">
-      <div><label>Total Sales Expenses (₦)</label><input type="text" id="sTotalExpenses" readonly placeholder="0" /></div>
-      <div><label>Net Profit on this Sale (₦)</label><input type="text" id="sNetProfit" readonly placeholder="0" /></div>
+    <div class="row" style="margin-top:12px; background:rgba(34,197,94,0.1); padding:12px; border-radius:8px; border:1px solid var(--green);">
+      <div><label>Total Sales Expenses (₦)</label><input type="text" id="sTotalExpenses" readonly placeholder="0" style="color:var(--red); font-weight:bold;" /></div>
+      <div><label>Net Profit on this Sale (₦)</label><input type="text" id="sNetProfit" readonly placeholder="0" style="color:var(--green); font-weight:bold; font-size:1.1rem;" /></div>
     </div>
 
     <div class="actions">
-      <button class="btn-success" onclick="submitSale()">💾 Save Sale</button>
+      <button class="btn-success" onclick="submitSale()" style="width:100%">💾 Finalize & Save Sale</button>
     </div>
   </div>
 
@@ -356,10 +369,9 @@
   <div class="card scroll">
     <table id="allSalesTable">
       <thead><tr>
-        <th>Date</th><th>Mineral</th><th>Buyer</th>
-        <th class="amt">Qty</th><th class="amt">Sell Total</th>
-        <th class="amt">Expenses</th><th class="amt">Profit</th>
-        <th></th>
+        <th>Date</th><th>Buyer</th><th>Items Sold</th>
+        <th class="amt">Total Weight</th><th class="amt">Revenue</th>
+        <th class="amt">Expenses</th><th class="amt">Profit</th><th></th>
       </tr></thead>
       <tbody></tbody>
     </table>
@@ -425,6 +437,7 @@
 <div class="toast" id="toast"></div>
 </div>
 </div>
+
 <script type="module">
 /* ============================================================
    FIREBASE INITIALIZATION
@@ -460,6 +473,28 @@ let db = { purchases: [] };
 let currentUser = null;
 let saveTimer = null;
 let customExpenseCounters = { purchase: 0, sale: 0 };
+let currentSaleCart = []; // Holds batches being sold in the current transaction
+
+/* ============================================================
+   AUTO LOGOUT ON INACTIVITY (5 MINUTES)
+============================================================ */
+let inactivityTimer;
+const INACTIVITY_LIMIT_MS = 5 * 60 * 1000; 
+
+function resetInactivityTimer() {
+  if (!currentUser) return; 
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    if (currentUser) {
+      toast('Session expired due to 5 minutes of inactivity. Logging out...');
+      setTimeout(() => { signOut(auth); }, 1500);
+    }
+  }, INACTIVITY_LIMIT_MS);
+}
+
+['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+  window.addEventListener(evt, resetInactivityTimer, true);
+});
 
 /* ============================================================
    HELPERS
@@ -547,8 +582,10 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('loadingScreen').style.display = 'block';
     document.getElementById('appContent').style.display = 'none';
     document.getElementById('userEmail').textContent = user.email;
+    resetInactivityTimer();
     await loadFromCloud();
   } else {
+    clearTimeout(inactivityTimer);
     document.getElementById('authScreen').style.display = 'block';
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('authEmail').value = '';
@@ -569,10 +606,16 @@ function migrateData(p) {
   if (!p.unit) p.unit = 'kg';
   if (!p.qtyKg) p.qtyKg = p.qty || 0;
   
-  // Migrate sales to have expenses
   p.sales.forEach(s => {
     if (!s.costs) s.costs = { transport: 0, labour: 0, agent: 0, misc: 0 };
     if (!s.customExpenses) s.customExpenses = [];
+    if (!s.totalExpenses) {
+      s.totalExpenses = Object.values(s.costs).reduce((a,b)=>a+b,0) + s.customExpenses.reduce((a,b)=>a+b.amount,0);
+    }
+    // Ensure multi-item sales are formatted correctly
+    if (!s.items && s.qty) {
+      s.items = [{ purchaseId: p.id, mineral: p.mineral, supplier: p.supplier, qty: s.qty, unit: p.unit }];
+    }
   });
   return p;
 }
@@ -655,7 +698,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 /* ============================================================
-   CUSTOM EXPENSES LOGIC (Reusable for Purchase & Sale)
+   CUSTOM EXPENSES LOGIC
 ============================================================ */
 function addCustomExpenseRow(listId) {
   const isPurchase = listId === 'customExpenseList';
@@ -775,11 +818,10 @@ function addPurchase() {
 }
 
 /* ============================================================
-   SALES PORTAL LOGIC
+   SALES PORTAL LOGIC (MULTI-BATCH CART)
 ============================================================ */
 function renderSalesPortal() {
-  const select = document.getElementById('sPurchaseId');
-  const currentVal = select.value;
+  const select = document.getElementById('sBatchSelect');
   select.innerHTML = '<option value="">-- Select a batch with stock --</option>';
   
   db.purchases.filter(p => remainingQty(p) > 0.0001).forEach(p => {
@@ -788,61 +830,86 @@ function renderSalesPortal() {
     opt.textContent = `${p.mineral} | ${p.supplier || 'No Supplier'} | Rem: ${remainingQty(p).toFixed(2)} ${unitLabel(p.unit)}`;
     select.appendChild(opt);
   });
-  
-  if (currentVal) select.value = currentVal;
-  updateSaleFormInfo();
 
-  // Render all sales table
-  const tb = document.querySelector('#allSalesTable tbody');
-  tb.innerHTML = '';
-  const allSales = [];
-  db.purchases.forEach(p => {
-    p.sales.forEach(s => allSales.push({ sale: s, purchase: p }));
-  });
-  allSales.sort((a,b) => b.sale.date.localeCompare(a.sale.date));
-
-  if (!allSales.length) {
-    tb.innerHTML = '<tr><td colspan="8" class="empty">No sales recorded yet</td></tr>';
-    return;
-  }
-
-  allSales.forEach(({ sale: s, purchase: p }) => {
-    const tr = document.createElement('tr');
-    const totalExp = Object.values(s.costs || {}).reduce((a,b) => a+b, 0) + (s.customExpenses || []).reduce((a,b) => a+b.amount, 0);
-    tr.innerHTML = `
-      <td>${s.date}</td>
-      <td>${p.mineral}</td>
-      <td>${s.buyer}</td>
-      <td class="amt">${s.qty} ${unitLabel(p.unit)}</td>
-      <td class="amt">${fmtInt(s.sellTotal)}</td>
-      <td class="amt neg">${fmtInt(totalExp)}</td>
-      <td class="amt ${s.profit >= 0 ? 'pos' : 'neg'}">${fmtInt(s.profit)}</td>
-      <td><button class="btn-danger btn-small" onclick="deleteSale('${p.id}','${s.id}')">✕</button></td>
-    `;
-    tb.appendChild(tr);
-  });
+  renderSaleCart();
+  renderAllSalesHistory();
 }
 
-function updateSaleFormInfo() {
-  const id = document.getElementById('sPurchaseId').value;
+function addBatchToSale() {
+  const id = document.getElementById('sBatchSelect').value;
+  const qty = parseFloat(document.getElementById('sBatchQty').value) || 0;
+  
+  if (!id) return toast('Select a batch first');
+  if (!qty || qty <= 0) return toast('Enter a valid quantity');
+
   const p = db.purchases.find(x => x.id === id);
-  if (!p) {
-    document.getElementById('sAvailableStock').value = '—';
-    document.getElementById('sQty').value = '';
-    document.getElementById('sSellTotal').value = '';
+  if (!p) return;
+  
+  if (qty > remainingQty(p) + 0.0001) return toast(`Cannot sell more than ${remainingQty(p).toFixed(2)} available`);
+
+  // Check if item already in cart
+  const existing = currentSaleCart.find(c => c.purchaseId === id);
+  if (existing) {
+    if (existing.qty + qty > remainingQty(p) + 0.0001) return toast(`Total exceeds available stock`);
+    existing.qty += qty;
+  } else {
+    currentSaleCart.push({
+      purchaseId: id,
+      mineral: p.mineral,
+      supplier: p.supplier || '—',
+      qty: qty,
+      unit: p.unit,
+      costOfGoods: (qty / p.qty) * p.totalCost
+    });
+  }
+
+  document.getElementById('sBatchQty').value = '';
+  renderSaleCart();
+}
+
+function removeBatchFromSale(index) {
+  currentSaleCart.splice(index, 1);
+  renderSaleCart();
+}
+
+function renderSaleCart() {
+  const tb = document.querySelector('#saleCartTable tbody');
+  tb.innerHTML = '';
+  
+  if (!currentSaleCart.length) {
+    tb.innerHTML = '<tr><td colspan="6" class="empty">No items added yet</td></tr>';
+    document.getElementById('saleCartTotal').innerHTML = '';
     recalcSaleForm();
     return;
   }
-  document.getElementById('sAvailableStock').value = remainingQty(p).toFixed(2) + ' ' + unitLabel(p.unit);
+
+  let totalWeightStr = [];
+  let weightSum = { kg: 0, lb: 0, tonne: 0 };
+
+  currentSaleCart.forEach((item, index) => {
+    weightSum[item.unit] += item.qty;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.mineral}</td>
+      <td>${item.supplier}</td>
+      <td class="amt">${item.qty} ${unitLabel(item.unit)}</td>
+      <td class="amt">₦${fmt(item.costOfGoods)}</td>
+      <td class="amt">—</td>
+      <td><button class="btn-danger btn-small" onclick="removeBatchFromSale(${index})">✕</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+
+  if (weightSum.kg > 0) totalWeightStr.push(`${weightSum.kg.toFixed(2)} kg`);
+  if (weightSum.lb > 0) totalWeightStr.push(`${weightSum.lb.toFixed(2)} lb`);
+  if (weightSum.tonne > 0) totalWeightStr.push(`${weightSum.tonne.toFixed(2)} tonne`);
+
+  document.getElementById('saleCartTotal').innerHTML = `Total Weight: <span style="color:var(--accent)">${totalWeightStr.join(' + ')}</span>`;
   recalcSaleForm();
 }
 
 function recalcSaleForm() {
-  const id = document.getElementById('sPurchaseId').value;
-  const p = db.purchases.find(x => x.id === id);
-  if (!p) return;
-
-  const qty = parseFloat(document.getElementById('sQty').value) || 0;
+  const totalCostOfGoods = currentSaleCart.reduce((s, item) => s + item.costOfGoods, 0);
   const sellTotal = parseFloat(document.getElementById('sSellTotal').value) || 0;
   
   const stdExp = ['sCostTransport','sCostLabour','sCostAgent','sCostMisc']
@@ -852,9 +919,8 @@ function recalcSaleForm() {
 
   document.getElementById('sTotalExpenses').value = totalExp ? fmt(totalExp) : '0';
 
-  if (qty > 0) {
-    const costOfGoods = (qty / p.qty) * p.totalCost;
-    const netProfit = sellTotal - costOfGoods - totalExp;
+  if (currentSaleCart.length > 0 && sellTotal > 0) {
+    const netProfit = sellTotal - totalCostOfGoods - totalExp;
     document.getElementById('sNetProfit').value = fmt(netProfit);
   } else {
     document.getElementById('sNetProfit').value = '0';
@@ -862,21 +928,14 @@ function recalcSaleForm() {
 }
 
 function submitSale() {
-  const id = document.getElementById('sPurchaseId').value;
-  const p = db.purchases.find(x => x.id === id);
-  if (!p) return toast('Select a purchase batch');
+  if (currentSaleCart.length === 0) return toast('Add at least one batch to the sale');
 
   const date = document.getElementById('sDate').value || today();
   const buyer = document.getElementById('sBuyer').value.trim();
-  const qty = parseFloat(document.getElementById('sQty').value) || 0;
   const sellTotal = parseFloat(document.getElementById('sSellTotal').value) || 0;
 
   if (!buyer) return toast('Enter buyer name');
-  if (!qty || qty <= 0) return toast('Enter valid quantity');
   if (!sellTotal || sellTotal <= 0) return toast('Enter total selling price');
-
-  const remaining = remainingQty(p);
-  if (qty > remaining + 0.0001) return toast(`Cannot sell more than ${remaining.toFixed(2)} available`);
 
   const costs = {
     transport: parseFloat(document.getElementById('sCostTransport').value) || 0,
@@ -887,34 +946,99 @@ function submitSale() {
   const customExpenses = getCustomExpenses('sCustomExpenseList');
   const totalExpenses = Object.values(costs).reduce((a,b) => a+b, 0) + customExpenses.reduce((s,e) => s+e.amount, 0);
 
-  const costOfGoods = (qty / p.qty) * p.totalCost;
-  const netProfit = sellTotal - costOfGoods - totalExpenses;
+  const totalCostOfGoods = currentSaleCart.reduce((s, item) => s + item.costOfGoods, 0);
+  const netProfit = sellTotal - totalCostOfGoods - totalExpenses;
+  const saleId = uid();
 
-  p.sales.push({
-    id: uid(), date, buyer, qty, sellTotal, costs, customExpenses,
-    costOfGoods, totalExpenses, profit: netProfit, sellPerUnit: sellTotal / qty
+  // Deduct stock from each batch
+  currentSaleCart.forEach(cartItem => {
+    const p = db.purchases.find(x => x.id === cartItem.purchaseId);
+    if (p) {
+      p.sales.push({
+        id: saleId, // All items in cart share the same sale receipt ID
+        date, buyer, 
+        items: currentSaleCart, // Save the whole cart
+        sellTotal, costs, customExpenses,
+        totalExpenses, costOfGoods: totalCostOfGoods, profit: netProfit, 
+        qty: cartItem.qty, // The specific qty for this batch
+        sellPerUnit: sellTotal / currentSaleCart.reduce((s,c)=>s+c.qty,0) // Avg price
+      });
+    }
   });
 
   saveToCloud(); 
   renderAll(); 
   
   // Reset form
-  document.getElementById('sQty').value = '';
+  currentSaleCart = [];
   document.getElementById('sSellTotal').value = '';
   document.getElementById('sBuyer').value = '';
   ['sCostTransport','sCostLabour','sCostAgent','sCostMisc'].forEach(id => document.getElementById(id).value = '');
   clearCustomExpenses('sCustomExpenseList');
+  renderSaleCart();
   
   toast('Sale recorded successfully');
 }
 
-function deleteSale(purchaseId, saleId) {
-  const p = db.purchases.find(x => x.id === purchaseId);
-  if (!p) return;
-  if (!confirm('Delete this sale?')) return;
-  p.sales = p.sales.filter(s => s.id !== saleId);
+function deleteSale(saleId) {
+  if (!confirm('Delete this entire sale? This will return the stock to inventory.')) return;
+  
+  // Find all purchases containing this saleId and remove them
+  db.purchases.forEach(p => {
+    p.sales = p.sales.filter(s => s.id !== saleId);
+  });
+  
   saveToCloud(); renderAll();
   toast('Sale deleted');
+}
+
+function renderAllSalesHistory() {
+  const tb = document.querySelector('#allSalesTable tbody');
+  tb.innerHTML = '';
+  
+  // Group by saleId (receipt)
+  const receipts = {};
+  db.purchases.forEach(p => {
+    p.sales.forEach(s => {
+      if (!receipts[s.id]) {
+        receipts[s.id] = { ...s, items: s.items || [] };
+      }
+    });
+  });
+
+  const allSales = Object.values(receipts).sort((a,b) => b.date.localeCompare(a.date));
+
+  if (!allSales.length) {
+    tb.innerHTML = '<tr><td colspan="8" class="empty">No sales recorded yet</td></tr>';
+    return;
+  }
+
+  allSales.forEach(s => {
+    const tr = document.createElement('tr');
+    
+    // Calculate total weight
+    let weightSum = { kg: 0, lb: 0, tonne: 0 };
+    s.items.forEach(i => { weightSum[i.unit] += i.qty; });
+    let wStr = [];
+    if (weightSum.kg > 0) wStr.push(`${weightSum.kg.toFixed(1)}kg`);
+    if (weightSum.lb > 0) wStr.push(`${weightSum.lb.toFixed(1)}lb`);
+    if (weightSum.tonne > 0) wStr.push(`${weightSum.tonne.toFixed(1)}t`);
+
+    const minerals = s.items.map(i => i.mineral).join(', ');
+    const totalExp = s.totalExpenses || 0;
+
+    tr.innerHTML = `
+      <td>${s.date}</td>
+      <td>${s.buyer}</td>
+      <td>${minerals}</td>
+      <td class="amt">${wStr.join(' + ')}</td>
+      <td class="amt">${fmtInt(s.sellTotal)}</td>
+      <td class="amt neg">${fmtInt(totalExp)}</td>
+      <td class="amt ${s.profit >= 0 ? 'pos' : 'neg'}">${fmtInt(s.profit)}</td>
+      <td><button class="btn-danger btn-small" onclick="deleteSale('${s.id}')">✕</button></td>
+    `;
+    tb.appendChild(tr);
+  });
 }
 
 /* ============================================================
@@ -965,7 +1089,7 @@ function viewPurchaseDetail(id) {
   if (!p) return;
   const area = document.getElementById('salesDetailArea');
   area.innerHTML = `
-    <div class="card">
+    <div class="card" style="margin-top:12px">
       <h2>Details: ${p.mineral} from ${p.supplier || '—'}</h2>
       <p class="muted">Total Cost: ₦${fmt(p.totalCost)} | Cost per unit: ₦${fmt(p.costPerUnit)} / ${unitLabel(p.unit)}</p>
       <h3 style="margin-top:12px">Purchase Expenses</h3>
@@ -1139,11 +1263,10 @@ function renderDashboard() {
   document.getElementById('dashStats').innerHTML = `
     <div class="stat"><div class="label">Revenue</div><div class="value pos">₦${fmtInt(a.revenue)}</div></div>
     <div class="stat"><div class="label">Net Profit</div><div class="value ${a.profit >= 0 ? 'pos' : 'neg'}">₦${fmtInt(a.profit)}</div></div>
-    <div class="stat"><div class="label">Purchases</div><div class="value">${a.purchasesCount}</div></div
+    <div class="stat"><div class="label">Purchases</div><div class="value">${a.purchasesCount}</div></div>
     <div class="stat"><div class="label">Sales Made</div><div class="value">${a.salesCount}</div></div>
   `;
 
-  // Profit Trend Chart
   const byDate = {};
   db.purchases.forEach(p => {
     p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
@@ -1176,7 +1299,6 @@ function renderDashboard() {
     }
   });
 
-  // Top Suppliers & Buyers Tables
   const supp = {};
   db.purchases.filter(p => inRange(p.date, start, end)).forEach(p => {
     if (!p.supplier) return;
@@ -1202,9 +1324,7 @@ function renderDashboard() {
     ? buyEntries.map(([name, d], i) => `<tr><td>${i+1}</td><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.revenue)}</td></tr>`).join('')
     : '<tr><td colspan="4" class="empty">No data</td></tr>';
 
-  // ==========================================
-  // BUSINESS INTELLIGENCE & ADVICE ENGINE
-  // ==========================================
+  // BUSINESS INTELLIGENCE
   const insightsDiv = document.getElementById('insights');
   let insightsHtml = '';
 
@@ -1213,21 +1333,14 @@ function renderDashboard() {
     return;
   }
 
-  // 1. Profit Margin Analysis
   const margin = (a.profit / a.revenue) * 100;
   let marginAdvice = '';
   if (margin >= 30) marginAdvice = "Excellent! Your profit margin is very healthy. Consider scaling up your operations.";
   else if (margin >= 15) marginAdvice = "Good profit margin. Keep an eye on your sales expenses to maximize returns.";
   else marginAdvice = "⚠️ Your profit margin is low. Review your sales transport and labour costs to see where you can cut back.";
   
-  insightsHtml += `
-    <div class="insight-box">
-      <h4>📊 Profit Margin Analysis</h4>
-      <p>Your profit margin is <strong>${margin.toFixed(1)}%</strong>. ${marginAdvice}</p>
-    </div>
-  `;
+  insightsHtml += `<div class="insight-box"><h4>📊 Profit Margin Analysis</h4><p>Your profit margin is <strong>${margin.toFixed(1)}%</strong>. ${marginAdvice}</p></div>`;
 
-  // 2. Best Performing Mineral
   const mineralTotals = {};
   db.purchases.forEach(p => {
     p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
@@ -1237,36 +1350,19 @@ function renderDashboard() {
   });
   const bestMineral = Object.entries(mineralTotals).sort((a,b) => b[1] - a[1])[0];
   if (bestMineral) {
-    insightsHtml += `
-      <div class="insight-box">
-        <h4>🏆 Best Performing Mineral</h4>
-        <p><strong>${bestMineral[0]}</strong> is generating the highest profit this period (₦${fmtInt(bestMineral[1])}). Focus on sourcing more of this material.</p>
-      </div>
-    `;
+    insightsHtml += `<div class="insight-box"><h4>🏆 Best Performing Mineral</h4><p><strong>${bestMineral[0]}</strong> is generating the highest profit this period (₦${fmtInt(bestMineral[1])}). Focus on sourcing more of this material.</p></div>`;
   }
 
-  // 3. Outstanding Stock (Cash Flow)
   const openStockValue = db.purchases.reduce((s, p) => s + (remainingQty(p) / p.qty) * p.totalCost, 0);
   if (openStockValue > 0) {
-    insightsHtml += `
-      <div class="insight-box">
-        <h4>📦 Cash Flow Alert</h4>
-        <p>You currently have <strong>₦${fmtInt(openStockValue)}</strong> tied up in unsold inventory. Consider accelerating sales to free up cash for new investments.</p>
-      </div>
-    `;
+    insightsHtml += `<div class="insight-box"><h4>📦 Cash Flow Alert</h4><p>You currently have <strong>₦${fmtInt(openStockValue)}</strong> tied up in unsold inventory. Consider accelerating sales to free up cash for new investments.</p></div>`;
   }
 
-  // 4. Projection (Based on current month average)
   if (document.getElementById('dashPeriod').value === 'month') {
     const dayOfMonth = new Date().getDate();
     const projectedRevenue = (a.revenue / dayOfMonth) * 30;
     const projectedProfit = (a.profit / dayOfMonth) * 30;
-    insightsHtml += `
-      <div class="insight-box">
-        <h4>🚀 Monthly Projection</h4>
-        <p>Based on your current pace, you are projected to end the month with roughly <strong>₦${fmtInt(projectedRevenue)}</strong> in revenue and <strong>₦${fmtInt(projectedProfit)}</strong> in net profit.</p>
-      </div>
-    `;
+    insightsHtml += `<div class="insight-box"><h4>🚀 Monthly Projection</h4><p>Based on your current pace, you are projected to end the month with roughly <strong>₦${fmtInt(projectedRevenue)}</strong> in revenue and <strong>₦${fmtInt(projectedProfit)}</strong> in net profit.</p></div>`;
   }
 
   insightsDiv.innerHTML = insightsHtml;
@@ -1316,7 +1412,6 @@ function renderAll() {
   renderDashboard();
 }
 
-// Expose functions to HTML
 window.addPurchase = addPurchase;
 window.clearPurchaseForm = clearPurchaseForm;
 window.addCustomExpenseRow = addCustomExpenseRow;
@@ -1325,18 +1420,17 @@ window.submitAuth = submitAuth;
 window.logout = logout;
 window.exportData = exportData;
 window.importData = importData;
-window.updateSaleFormInfo = updateSaleFormInfo;
+window.addBatchToSale = addBatchToSale;
+window.removeBatchFromSale = removeBatchFromSale;
 window.recalcSaleForm = recalcSaleForm;
 window.submitSale = submitSale;
 window.deleteSale = deleteSale;
 window.viewPurchaseDetail = viewPurchaseDetail;
 window.recalcForm = recalcForm;
 
-// Set dates
 document.getElementById('pDate').value = today();
 document.getElementById('sDate').value = today();
 
-// Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW fail', e));
