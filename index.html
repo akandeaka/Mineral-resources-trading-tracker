@@ -74,9 +74,7 @@
   .neg { color: var(--red); }
   .scroll { overflow-x: auto; }
 
-  .stat {
-    background: var(--card2); border-radius: 8px; padding: 10px 12px;
-  }
+  .stat { background: var(--card2); border-radius: 8px; padding: 10px 12px; }
   .stat .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .stat .value { font-size: 1.1rem; font-weight: 700; margin-top: 2px; }
 
@@ -102,72 +100,55 @@
   .mini { font-size: 0.7rem; color: var(--muted); }
 
   /* AUTH SCREEN */
-  .auth-wrap {
-    max-width: 400px; margin: 40px auto; padding: 20px;
-  }
-  .auth-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 24px;
-  }
+  .auth-wrap { max-width: 400px; margin: 40px auto; padding: 20px; }
+  .auth-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
   .auth-card h1 { text-align: center; margin-bottom: 6px; }
   .auth-card .subtitle { text-align: center; margin-bottom: 20px; }
   .auth-field { margin-bottom: 12px; }
-  .auth-btn {
-    width: 100%; padding: 12px; margin-top: 8px;
-    background: var(--accent); color: #0f172a; font-weight: 700;
-    font-size: 0.95rem;
-  }
-  .auth-error {
-    background: rgba(239,68,68,0.15); border: 1px solid var(--red);
-    color: #fca5a5; padding: 10px; border-radius: 6px; margin-bottom: 12px;
-    font-size: 0.82rem; display: none;
-  }
+  .auth-btn { width: 100%; padding: 12px; margin-top: 8px; background: var(--accent); color: #0f172a; font-weight: 700; font-size: 0.95rem; }
+  .auth-error { background: rgba(239,68,68,0.15); border: 1px solid var(--red); color: #fca5a5; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 0.82rem; display: none; }
   .auth-error.show { display: block; }
-  .auth-info {
-    background: rgba(34,211,238,0.1); border: 1px solid var(--accent);
-    color: var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 16px;
-    font-size: 0.8rem; text-align: center;
-  }
+  .auth-info { background: rgba(34,211,238,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 10px; border-radius: 6px; margin-bottom: 16px; font-size: 0.8rem; text-align: center; }
 
   /* USER BAR */
-  .user-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--card2); padding: 8px 12px; border-radius: 8px;
-    margin-bottom: 10px; font-size: 0.82rem;
-  }
+  .user-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card2); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.82rem; }
   .user-bar .email { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .user-bar button { padding: 6px 12px; font-size: 0.78rem; }
 
   /* LOADING */
-  .loading {
-    text-align: center; padding: 40px; color: var(--muted);
-    font-size: 0.9rem;
-  }
+  .loading { text-align: center; padding: 40px; color: var(--muted); font-size: 0.9rem; }
 
   /* SYNC STATUS */
-  .sync {
-    display: inline-block; padding: 2px 8px; border-radius: 999px;
-    font-size: 0.7rem; font-weight: 600;
-  }
+  .sync { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
   .sync.online { background: rgba(34,197,94,0.2); color: var(--green); }
   .sync.offline { background: rgba(234,179,8,0.2); color: var(--yellow); }
   .sync.syncing { background: rgba(34,211,238,0.2); color: var(--accent); }
+
+  /* CUSTOM EXPENSES */
+  .custom-expenses { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 12px; }
+  .custom-exp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .custom-exp-header label { margin: 0; }
+  .custom-exp-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+  .custom-exp-row input[type="text"] { flex: 2; }
+  .custom-exp-row input[type="number"] { flex: 1; }
+  .custom-exp-row button { padding: 8px 12px; font-size: 0.85rem; flex: 0 0 auto; }
+  .add-exp-btn { padding: 6px 12px; font-size: 0.78rem; background: var(--card); color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; cursor: pointer; font-weight: 600; }
+  .add-exp-btn:hover { background: var(--accent); color: #0f172a; }
+
+  /* INSIGHTS */
+  .insight-box { background: rgba(34,211,238,0.05); border-left: 4px solid var(--accent); padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+  .insight-box h4 { color: var(--accent); font-size: 0.85rem; margin-bottom: 4px; }
+  .insight-box p { font-size: 0.85rem; color: var(--text); }
 </style>
 </head>
 <body>
 
-<!-- ============== AUTH SCREEN ============== -->
 <div id="authScreen" class="auth-wrap" style="display:none">
   <div class="auth-card">
     <h1>⛏️ MRT Tracker</h1>
     <p class="subtitle">Mineral Resources Trading</p>
-
-    <div class="auth-info">
-      🔒 Invite-only access. Contact admin for your login.
-    </div>
-
+    <div class="auth-info">🔒 Invite-only access. Contact admin for your login.</div>
     <div id="authError" class="auth-error"></div>
-
     <div class="auth-field">
       <label>Email</label>
       <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email" />
@@ -176,28 +157,19 @@
       <label>Password</label>
       <input type="password" id="authPassword" placeholder="Your password" autocomplete="current-password" />
     </div>
-
     <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Sign In</button>
-
-    <p class="muted" style="text-align:center; margin-top:16px; font-size:0.75rem">
-      Your data is encrypted and stored securely in Google Cloud.
-    </p>
+    <p class="muted" style="text-align:center; margin-top:16px; font-size:0.75rem">Your data is encrypted and stored securely in Google Cloud.</p>
   </div>
 </div>
 
-<!-- ============== MAIN APP ============== -->
 <div id="mainApp" style="display:none">
-
 <div id="loadingScreen" class="loading">Loading your data...</div>
-
 <div id="appContent" style="display:none">
 
 <div class="user-bar">
   <div>
     <div class="email" id="userEmail">—</div>
-    <div class="mini">
-      <span class="sync syncing" id="syncStatus">● Syncing</span>
-    </div>
+    <div class="mini"><span class="sync syncing" id="syncStatus">● Syncing</span></div>
   </div>
   <button class="btn-ghost" onclick="logout()">Logout</button>
 </div>
@@ -208,6 +180,7 @@
 <div class="tabs">
   <div class="tab active" data-tab="dashboard">📊 Dashboard</div>
   <div class="tab" data-tab="purchases">🛒 Purchases</div>
+  <div class="tab" data-tab="sales">💰 Sales Portal</div>
   <div class="tab" data-tab="inventory">📦 Inventory</div>
   <div class="tab" data-tab="minerals">🧾 By Mineral</div>
   <div class="tab" data-tab="suppliers">👤 Suppliers & Buyers</div>
@@ -221,54 +194,40 @@
       <div>
         <label>Period</label>
         <select id="dashPeriod">
+          <option value="daily">Today</option>
           <option value="week">This Week</option>
           <option value="month" selected>This Month</option>
           <option value="year">This Year</option>
           <option value="custom">Custom Range</option>
         </select>
       </div>
-      <div id="customStartWrap" style="display:none">
-        <label>From</label><input type="date" id="dashStart" />
-      </div>
-      <div id="customEndWrap" style="display:none">
-        <label>To</label><input type="date" id="dashEnd" />
-      </div>
+      <div id="customStartWrap" style="display:none"><label>From</label><input type="date" id="dashStart" /></div>
+      <div id="customEndWrap" style="display:none"><label>To</label><input type="date" id="dashEnd" /></div>
     </div>
   </div>
 
   <h2 id="dashTitle">This Month Summary</h2>
   <div class="grid" id="dashStats"></div>
 
-  <h2>Profit Trend</h2>
+  <h2>📈 Profit Trend & Projections</h2>
   <div class="card"><canvas id="profitTrendChart"></canvas></div>
 
-  <h2>Weight Traded (Bought vs Sold)</h2>
-  <div class="card"><canvas id="weightChart"></canvas></div>
-
-  <h2>🏆 Top Suppliers (by volume bought)</h2>
+  <h2>🏆 Top Suppliers & Buyers</h2>
   <div class="card scroll">
     <table id="topSuppliersTable">
-      <thead><tr>
-        <th>#</th><th>Supplier</th><th class="amt">Purchases</th>
-        <th class="amt">Total Cost</th>
-      </tr></thead>
+      <thead><tr><th>#</th><th>Supplier</th><th class="amt">Purchases</th><th class="amt">Total Cost</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
-
-  <h2>🏆 Top Buyers (by revenue)</h2>
   <div class="card scroll">
     <table id="topBuyersTable">
-      <thead><tr>
-        <th>#</th><th>Buyer</th><th class="amt">Sales</th>
-        <th class="amt">Total Revenue</th>
-      </tr></thead>
+      <thead><tr><th>#</th><th>Buyer</th><th class="amt">Sales</th><th class="amt">Total Revenue</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <h2>💡 Insights</h2>
-  <div class="card" id="insights"></div>
+  <h2>💡 Business Intelligence & Advice</h2>
+  <div id="insights"></div>
 </div>
 
 <!-- ================= PURCHASES ================= -->
@@ -284,7 +243,7 @@
           <option>Monazite</option><option>Lead</option><option>Other</option>
         </select>
       </div>
-      <div><label>Supplier</label><input type="text" id="pSupplier" placeholder="e.g. Supplier A" /></div>
+      <div><label>Supplier</label><input type="text" id="pSupplier" placeholder="Supplier Name" /></div>
       <div><label>Location</label><input type="text" id="pLocation" placeholder="e.g. Jos" /></div>
     </div>
 
@@ -302,7 +261,7 @@
       <div><label>Purchase Cost (₦)</label><input type="number" id="pCost" step="0.01" placeholder="0" /></div>
     </div>
 
-    <h3 style="margin-top:14px">Itemized Costs (₦)</h3>
+    <h3 style="margin-top:14px">Standard Costs (₦)</h3>
     <div class="row">
       <div><label>Transport</label><input type="number" id="cTransport" step="0.01" placeholder="0" /></div>
       <div><label>Labour</label><input type="number" id="cLabour" step="0.01" placeholder="0" /></div>
@@ -312,7 +271,15 @@
       <div><label>Miscellaneous</label><input type="number" id="cMisc" step="0.01" placeholder="0" /></div>
     </div>
 
-    <div class="row" style="margin-top:8px">
+    <div class="custom-expenses">
+      <div class="custom-exp-header">
+        <label>Additional Custom Expenses</label>
+        <button type="button" class="add-exp-btn" onclick="addCustomExpenseRow('customExpenseList')">+ Add Expense</button>
+      </div>
+      <div id="customExpenseList"></div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
       <div><label>Total Cost (₦)</label><input type="text" id="pTotalCost" readonly placeholder="0" /></div>
       <div><label>Cost per Unit (₦)</label><input type="text" id="pCostPerUnit" readonly placeholder="0" /></div>
       <div><label>Notes</label><input type="text" id="pNotes" placeholder="optional" /></div>
@@ -337,35 +304,75 @@
       <tbody></tbody>
     </table>
   </div>
-
   <div id="salesDetailArea"></div>
 </div>
 
-<!-- ================= INVENTORY ================= -->
-<div id="inventory" class="panel">
-  <h2>Current Stock (Unsold Minerals)</h2>
-  <div class="grid" id="inventoryStats"></div>
+<!-- ================= SALES PORTAL ================= -->
+<div id="sales" class="panel">
+  <div class="card">
+    <h2>Add New Sale</h2>
+    <div class="row">
+      <div>
+        <label>Select Purchase Batch</label>
+        <select id="sPurchaseId" onchange="updateSaleFormInfo()"></select>
+      </div>
+      <div><label>Date of Sale</label><input type="date" id="sDate" /></div>
+      <div><label>Buyer Name</label><input type="text" id="sBuyer" placeholder="Buyer / Company" /></div>
+    </div>
+    
+    <div class="row" style="margin-top:8px">
+      <div><label>Quantity to Sell</label><input type="number" id="sQty" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
+      <div><label>Available Stock</label><input type="text" id="sAvailableStock" readonly placeholder="—" /></div>
+      <div><label>Total Selling Price (₦)</label><input type="number" id="sSellTotal" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
+    </div>
 
-  <h2>Stock by Mineral</h2>
+    <h3 style="margin-top:14px">Sales Expenses (₦)</h3>
+    <div class="row">
+      <div><label>Transport</label><input type="number" id="sCostTransport" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
+      <div><label>Labour</label><input type="number" id="sCostLabour" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
+      <div><label>Agent Commission</label><input type="number" id="sCostAgent" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
+      <div><label>Miscellaneous</label><input type="number" id="sCostMisc" step="0.01" placeholder="0" oninput="recalcSaleForm()" /></div>
+    </div>
+
+    <div class="custom-expenses">
+      <div class="custom-exp-header">
+        <label>Additional Custom Expenses</label>
+        <button type="button" class="add-exp-btn" onclick="addCustomExpenseRow('sCustomExpenseList')">+ Add Expense</button>
+      </div>
+      <div id="sCustomExpenseList"></div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div><label>Total Sales Expenses (₦)</label><input type="text" id="sTotalExpenses" readonly placeholder="0" /></div>
+      <div><label>Net Profit on this Sale (₦)</label><input type="text" id="sNetProfit" readonly placeholder="0" /></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-success" onclick="submitSale()">💾 Save Sale</button>
+    </div>
+  </div>
+
+  <h2>All Sales History</h2>
   <div class="card scroll">
-    <table id="inventoryTable">
+    <table id="allSalesTable">
       <thead><tr>
-        <th>Mineral</th><th class="amt">Qty Held</th>
-        <th class="amt">Total Invested</th><th class="amt">Avg Cost/unit</th>
-        <th class="amt">Purchases Open</th>
+        <th>Date</th><th>Mineral</th><th>Buyer</th>
+        <th class="amt">Qty</th><th class="amt">Sell Total</th>
+        <th class="amt">Expenses</th><th class="amt">Profit</th>
+        <th></th>
       </tr></thead>
       <tbody></tbody>
     </table>
   </div>
+</div>
 
-  <h2>Open Purchases (still holding stock)</h2>
+<!-- ================= INVENTORY ================= -->
+<div id="inventory" class="panel">
+  <h2>Current Stock</h2>
+  <div class="grid" id="inventoryStats"></div>
   <div class="card scroll">
-    <table id="openPurchasesTable">
-      <thead><tr>
-        <th>Date</th><th>Mineral</th><th>Supplier</th>
-        <th class="amt">Remaining</th><th class="amt">Invested</th>
-        <th class="amt">Cost/unit</th><th></th>
-      </tr></thead>
+    <table id="inventoryTable">
+      <thead><tr><th>Mineral</th><th class="amt">Qty Held</th><th class="amt">Invested</th><th class="amt">Avg Cost</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -373,15 +380,12 @@
 
 <!-- ================= BY MINERAL ================= -->
 <div id="minerals" class="panel">
-  <h2>By-Mineral Summary (All Time)</h2>
+  <h2>By-Mineral Summary</h2>
   <div class="card scroll">
     <table id="mineralsTable">
       <thead><tr>
-        <th>Mineral</th>
-        <th class="amt">Bought</th><th class="amt">Sold</th><th class="amt">Remaining</th>
-        <th class="amt">Invested</th><th class="amt">Revenue</th>
-        <th class="amt">Profit</th>
-        <th class="amt">Avg Buy</th><th class="amt">Avg Sell</th>
+        <th>Mineral</th><th class="amt">Bought</th><th class="amt">Sold</th><th class="amt">Remaining</th>
+        <th class="amt">Revenue</th><th class="amt">Profit</th>
       </tr></thead>
       <tbody></tbody>
     </table>
@@ -390,26 +394,17 @@
 
 <!-- ================= SUPPLIERS & BUYERS ================= -->
 <div id="suppliers" class="panel">
-  <h2>Suppliers (All Time)</h2>
+  <h2>Suppliers</h2>
   <div class="card scroll">
     <table id="suppliersTable">
-      <thead><tr>
-        <th>Supplier</th><th class="amt">Purchases</th>
-        <th class="amt">Total Cost</th><th class="amt">Avg Cost</th>
-        <th>Last Purchase</th>
-      </tr></thead>
+      <thead><tr><th>Supplier</th><th class="amt">Purchases</th><th class="amt">Total Cost</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
-
-  <h2>Buyers (All Time)</h2>
+  <h2>Buyers</h2>
   <div class="card scroll">
     <table id="buyersTable">
-      <thead><tr>
-        <th>Buyer</th><th class="amt">Sales</th>
-        <th class="amt">Total Revenue</th><th class="amt">Avg Revenue</th>
-        <th>Last Sale</th>
-      </tr></thead>
+      <thead><tr><th>Buyer</th><th class="amt">Sales</th><th class="amt">Total Revenue</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -419,33 +414,17 @@
 <div id="data" class="panel">
   <div class="card">
     <h2>Backup & Restore</h2>
-    <p class="muted">Your data syncs to the cloud automatically. You can also export a manual backup.</p>
     <div class="actions">
       <button class="btn-primary" onclick="exportData()">⬇️ Export JSON Backup</button>
       <button class="btn-ghost" onclick="document.getElementById('importFile').click()">⬆️ Import Backup</button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
     </div>
   </div>
-
-  <div class="card">
-    <h2>Quick Stats</h2>
-    <div id="dataStats" class="grid"></div>
-  </div>
-
-  <div class="card">
-    <h2>Account</h2>
-    <p class="muted">Signed in as: <strong id="accountEmail"></strong></p>
-    <p class="muted" style="margin-top:6px">Your data is stored securely in Google Cloud Firestore and only accessible to your account.</p>
-    <div class="actions" style="margin-top:12px">
-      <button class="btn-ghost" onclick="logout()">Logout</button>
-    </div>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
-
-</div><!-- appContent -->
-</div><!-- mainApp -->
+</div>
+</div>
 <script type="module">
 /* ============================================================
    FIREBASE INITIALIZATION
@@ -480,6 +459,7 @@ catch (e) { console.warn('Offline persistence:', e.code); }
 let db = { purchases: [] };
 let currentUser = null;
 let saveTimer = null;
+let customExpenseCounters = { purchase: 0, sale: 0 };
 
 /* ============================================================
    HELPERS
@@ -508,7 +488,7 @@ function setSyncStatus(state) {
 }
 
 /* ============================================================
-   AUTH — LOGIN ONLY (sign-up disabled)
+   AUTH
 ============================================================ */
 function showAuthError(msg) {
   const el = document.getElementById('authError');
@@ -536,10 +516,7 @@ async function submitAuth() {
       'auth/wrong-password': 'Incorrect password',
       'auth/invalid-credential': 'Invalid email or password',
       'auth/too-many-requests': 'Too many attempts. Try again later.',
-      'auth/network-request-failed': 'Network error. Check your internet.',
-      'auth/user-disabled': 'This account has been disabled.',
-      'auth/unauthorized-domain': 'This domain is not authorized. Contact admin.',
-      'auth/admin-restricted-operation': 'Sign-ups are disabled. Contact admin for access.'
+      'auth/network-request-failed': 'Network error. Check your internet.'
     };
     showAuthError(msgs[err.code] || err.message);
     btn.disabled = false;
@@ -570,7 +547,6 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('loadingScreen').style.display = 'block';
     document.getElementById('appContent').style.display = 'none';
     document.getElementById('userEmail').textContent = user.email;
-    document.getElementById('accountEmail').textContent = user.email;
     await loadFromCloud();
   } else {
     document.getElementById('authScreen').style.display = 'block';
@@ -586,6 +562,21 @@ onAuthStateChanged(auth, async (user) => {
 /* ============================================================
    CLOUD LOAD / SAVE
 ============================================================ */
+function migrateData(p) {
+  if (!p.sales) p.sales = [];
+  if (!p.costs) p.costs = {};
+  if (!p.customExpenses) p.customExpenses = [];
+  if (!p.unit) p.unit = 'kg';
+  if (!p.qtyKg) p.qtyKg = p.qty || 0;
+  
+  // Migrate sales to have expenses
+  p.sales.forEach(s => {
+    if (!s.costs) s.costs = { transport: 0, labour: 0, agent: 0, misc: 0 };
+    if (!s.customExpenses) s.customExpenses = [];
+  });
+  return p;
+}
+
 async function loadFromCloud() {
   try {
     setSyncStatus('syncing');
@@ -595,31 +586,9 @@ async function loadFromCloud() {
     if (snap.exists()) {
       db = snap.data();
       if (!db.purchases) db.purchases = [];
-      db.purchases.forEach(p => {
-        if (!p.sales) p.sales = [];
-        if (!p.costs) p.costs = {};
-        if (!p.unit) p.unit = 'kg';
-        if (!p.qtyKg) p.qtyKg = p.qty || 0;
-      });
+      db.purchases = db.purchases.map(migrateData);
     } else {
-      // First login for this user: try to migrate from localStorage
-      const localRaw = localStorage.getItem('mrt_v1');
-      if (localRaw) {
-        try {
-          const local = JSON.parse(localRaw);
-          if (local.purchases && local.purchases.length > 0) {
-            if (confirm('We found ' + local.purchases.length + ' purchases saved on this device. Import them into your cloud account? (Recommended)')) {
-              db = local;
-              await saveToCloudNow();
-              localStorage.removeItem('mrt_v1');
-            } else {
-              db = { purchases: [] };
-            }
-          }
-        } catch(e) { console.warn(e); }
-      } else {
-        db = { purchases: [] };
-      }
+      db = { purchases: [] };
     }
 
     document.getElementById('loadingScreen').style.display = 'none';
@@ -628,10 +597,7 @@ async function loadFromCloud() {
     setSyncStatus('online');
   } catch (err) {
     console.error('Load error', err);
-    document.getElementById('loadingScreen').innerHTML =
-      'Error loading data: ' + err.message +
-      '<br><br><button class="btn-ghost" onclick="location.reload()">Retry</button>' +
-      '<br><br><button class="btn-ghost" onclick="logout()">Logout</button>';
+    document.getElementById('loadingScreen').innerHTML = 'Error loading data: ' + err.message;
     setSyncStatus('offline');
   }
 }
@@ -683,18 +649,67 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.tab === 'inventory') renderInventory();
     if (tab.dataset.tab === 'minerals') renderMineralsSummary();
     if (tab.dataset.tab === 'suppliers') renderSuppliersBuyers();
-    if (tab.dataset.tab === 'data') renderDataStats();
     if (tab.dataset.tab === 'purchases') renderPurchases();
+    if (tab.dataset.tab === 'sales') renderSalesPortal();
   });
 });
 
 /* ============================================================
-   PURCHASE FORM
+   CUSTOM EXPENSES LOGIC (Reusable for Purchase & Sale)
+============================================================ */
+function addCustomExpenseRow(listId) {
+  const isPurchase = listId === 'customExpenseList';
+  const counterKey = isPurchase ? 'purchase' : 'sale';
+  customExpenseCounters[counterKey]++;
+  const id = 'ce_' + counterKey + '_' + customExpenseCounters[counterKey];
+  
+  const list = document.getElementById(listId);
+  const row = document.createElement('div');
+  row.className = 'custom-exp-row';
+  row.id = id;
+  row.innerHTML = `
+    <input type="text" placeholder="Description (e.g. Fuel)" oninput="recalcForm('${counterKey}')" />
+    <input type="number" step="0.01" placeholder="0" oninput="recalcForm('${counterKey}')" />
+    <button type="button" class="btn-danger" onclick="removeCustomExpenseRow('${id}', '${counterKey}')">✕</button>
+  `;
+  list.appendChild(row);
+  recalcForm(counterKey);
+}
+
+function removeCustomExpenseRow(id, counterKey) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  recalcForm(counterKey);
+}
+
+function getCustomExpenses(listId) {
+  const rows = document.querySelectorAll(`#${listId} .custom-exp-row`);
+  const result = [];
+  rows.forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const desc = inputs[0].value.trim();
+    const amount = parseFloat(inputs[1].value) || 0;
+    if (desc || amount) result.push({ description: desc || 'Misc', amount });
+  });
+  return result;
+}
+
+function clearCustomExpenses(listId) {
+  document.getElementById(listId).innerHTML = '';
+  recalcForm(listId === 'customExpenseList' ? 'purchase' : 'sale');
+}
+
+function recalcForm(type) {
+  if (type === 'purchase') recalcPurchase();
+  if (type === 'sale') recalcSaleForm();
+}
+
+/* ============================================================
+   PURCHASE LOGIC
 ============================================================ */
 ['pQty','pUnit','pCost','cTransport','cLabour','cEquipment','cSite','cProcessing','cMisc'].forEach(id => {
-  document.addEventListener('input', e => {
-    if (e.target && e.target.id === id) recalcPurchase();
-  });
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', recalcPurchase);
 });
 document.getElementById('pUnit').addEventListener('change', recalcPurchase);
 
@@ -704,6 +719,7 @@ function recalcPurchase() {
   const purchaseCost = parseFloat(document.getElementById('pCost').value) || 0;
   const otherCosts = ['cTransport','cLabour','cEquipment','cSite','cProcessing','cMisc']
     .reduce((s, id) => s + (parseFloat(document.getElementById(id).value) || 0), 0);
+  const customTotal = getCustomExpenses('customExpenseList').reduce((s, e) => s + e.amount, 0);
 
   if (qty && unit !== 'kg') {
     document.getElementById('pKgEq').value = toKg(qty, unit).toFixed(2) + ' kg';
@@ -713,19 +729,16 @@ function recalcPurchase() {
     document.getElementById('pKgEq').value = '';
   }
 
-  const totalCost = purchaseCost + otherCosts;
+  const totalCost = purchaseCost + otherCosts + customTotal;
   document.getElementById('pTotalCost').value = totalCost ? fmt(totalCost) : '';
-  document.getElementById('pCostPerUnit').value =
-    (qty && totalCost) ? fmt(totalCost / qty) + ' / ' + unitLabel(unit) : '';
+  document.getElementById('pCostPerUnit').value = (qty && totalCost) ? fmt(totalCost / qty) + ' / ' + unitLabel(unit) : '';
 }
 
 function clearPurchaseForm() {
-  ['pSupplier','pLocation','pQty','pKgEq','pCost','cTransport','cLabour',
-   'cEquipment','cSite','cProcessing','cMisc','pTotalCost','pCostPerUnit','pNotes']
-   .forEach(id => document.getElementById(id).value = '');
+  ['pSupplier','pLocation','pQty','pKgEq','pCost','cTransport','cLabour','cEquipment','cSite','cProcessing','cMisc','pTotalCost','pCostPerUnit','pNotes'].forEach(id => document.getElementById(id).value = '');
+  clearCustomExpenses('customExpenseList');
   document.getElementById('pDate').value = today();
   document.getElementById('pUnit').value = 'kg';
-  document.getElementById('pMineral').value = 'Tin';
 }
 
 function addPurchase() {
@@ -748,76 +761,151 @@ function addPurchase() {
     processing: parseFloat(document.getElementById('cProcessing').value) || 0,
     misc: parseFloat(document.getElementById('cMisc').value) || 0
   };
-  const otherCostTotal = Object.values(costs).reduce((a,b) => a+b, 0);
-  const totalCost = purchaseCost + otherCostTotal;
+  const customExpenses = getCustomExpenses('customExpenseList');
+  const totalCost = purchaseCost + Object.values(costs).reduce((a,b) => a+b, 0) + customExpenses.reduce((s, e) => s + e.amount, 0);
 
   db.purchases.push({
-    id: uid(),
-    date, mineral, supplier, location,
-    qty, unit, qtyKg: toKg(qty, unit),
-    purchaseCost, costs, totalCost,
-    costPerUnit: totalCost / qty,
-    sales: [],
-    notes: document.getElementById('pNotes').value.trim()
+    id: uid(), date, mineral, supplier, location, qty, unit, qtyKg: toKg(qty, unit),
+    purchaseCost, costs, customExpenses, totalCost, costPerUnit: totalCost / qty,
+    sales: [], notes: document.getElementById('pNotes').value.trim()
   });
 
-  saveToCloud();
-  renderAll();
-  clearPurchaseForm();
+  saveToCloud(); renderAll(); clearPurchaseForm();
   toast('Purchase saved');
 }
 
-function deletePurchase(id) {
-  const p = db.purchases.find(x => x.id === id);
-  if (!p) return;
-  if (p.sales.length > 0) {
-    if (!confirm('This purchase has sales. Delete purchase AND all its sales?')) return;
-  } else {
-    if (!confirm('Delete this purchase?')) return;
-  }
-  db.purchases = db.purchases.filter(x => x.id !== id);
-  saveToCloud(); renderAll();
-  toast('Purchase deleted');
-}
-
 /* ============================================================
-   SALES
+   SALES PORTAL LOGIC
 ============================================================ */
-function addSale(purchaseId) {
-  const p = db.purchases.find(x => x.id === purchaseId);
-  if (!p) return;
+function renderSalesPortal() {
+  const select = document.getElementById('sPurchaseId');
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">-- Select a batch with stock --</option>';
+  
+  db.purchases.filter(p => remainingQty(p) > 0.0001).forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.mineral} | ${p.supplier || 'No Supplier'} | Rem: ${remainingQty(p).toFixed(2)} ${unitLabel(p.unit)}`;
+    select.appendChild(opt);
+  });
+  
+  if (currentVal) select.value = currentVal;
+  updateSaleFormInfo();
 
-  const saleDate = prompt('Sale date (YYYY-MM-DD):', today());
-  if (!saleDate) return;
-  const buyer = prompt('Buyer name:');
-  if (!buyer) return;
-  const qtySold = parseFloat(prompt('Quantity sold (' + unitLabel(p.unit) + '):'));
-  if (!qtySold || qtySold <= 0) return;
-  const sellTotal = parseFloat(prompt('Total sell amount (₦):'));
-  if (!sellTotal || sellTotal <= 0) return;
+  // Render all sales table
+  const tb = document.querySelector('#allSalesTable tbody');
+  tb.innerHTML = '';
+  const allSales = [];
+  db.purchases.forEach(p => {
+    p.sales.forEach(s => allSales.push({ sale: s, purchase: p }));
+  });
+  allSales.sort((a,b) => b.sale.date.localeCompare(a.sale.date));
 
-  const remaining = remainingQty(p);
-  if (qtySold > remaining + 0.0001) {
-    alert('Cannot sell more than remaining stock (' + remaining.toFixed(2) + ' ' + unitLabel(p.unit) + ')');
+  if (!allSales.length) {
+    tb.innerHTML = '<tr><td colspan="8" class="empty">No sales recorded yet</td></tr>';
     return;
   }
 
-  const costShare = (qtySold / p.qty) * p.totalCost;
-  const profit = sellTotal - costShare;
+  allSales.forEach(({ sale: s, purchase: p }) => {
+    const tr = document.createElement('tr');
+    const totalExp = Object.values(s.costs || {}).reduce((a,b) => a+b, 0) + (s.customExpenses || []).reduce((a,b) => a+b.amount, 0);
+    tr.innerHTML = `
+      <td>${s.date}</td>
+      <td>${p.mineral}</td>
+      <td>${s.buyer}</td>
+      <td class="amt">${s.qty} ${unitLabel(p.unit)}</td>
+      <td class="amt">${fmtInt(s.sellTotal)}</td>
+      <td class="amt neg">${fmtInt(totalExp)}</td>
+      <td class="amt ${s.profit >= 0 ? 'pos' : 'neg'}">${fmtInt(s.profit)}</td>
+      <td><button class="btn-danger btn-small" onclick="deleteSale('${p.id}','${s.id}')">✕</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+function updateSaleFormInfo() {
+  const id = document.getElementById('sPurchaseId').value;
+  const p = db.purchases.find(x => x.id === id);
+  if (!p) {
+    document.getElementById('sAvailableStock').value = '—';
+    document.getElementById('sQty').value = '';
+    document.getElementById('sSellTotal').value = '';
+    recalcSaleForm();
+    return;
+  }
+  document.getElementById('sAvailableStock').value = remainingQty(p).toFixed(2) + ' ' + unitLabel(p.unit);
+  recalcSaleForm();
+}
+
+function recalcSaleForm() {
+  const id = document.getElementById('sPurchaseId').value;
+  const p = db.purchases.find(x => x.id === id);
+  if (!p) return;
+
+  const qty = parseFloat(document.getElementById('sQty').value) || 0;
+  const sellTotal = parseFloat(document.getElementById('sSellTotal').value) || 0;
+  
+  const stdExp = ['sCostTransport','sCostLabour','sCostAgent','sCostMisc']
+    .reduce((s, id) => s + (parseFloat(document.getElementById(id).value) || 0), 0);
+  const customExp = getCustomExpenses('sCustomExpenseList').reduce((s, e) => s + e.amount, 0);
+  const totalExp = stdExp + customExp;
+
+  document.getElementById('sTotalExpenses').value = totalExp ? fmt(totalExp) : '0';
+
+  if (qty > 0) {
+    const costOfGoods = (qty / p.qty) * p.totalCost;
+    const netProfit = sellTotal - costOfGoods - totalExp;
+    document.getElementById('sNetProfit').value = fmt(netProfit);
+  } else {
+    document.getElementById('sNetProfit').value = '0';
+  }
+}
+
+function submitSale() {
+  const id = document.getElementById('sPurchaseId').value;
+  const p = db.purchases.find(x => x.id === id);
+  if (!p) return toast('Select a purchase batch');
+
+  const date = document.getElementById('sDate').value || today();
+  const buyer = document.getElementById('sBuyer').value.trim();
+  const qty = parseFloat(document.getElementById('sQty').value) || 0;
+  const sellTotal = parseFloat(document.getElementById('sSellTotal').value) || 0;
+
+  if (!buyer) return toast('Enter buyer name');
+  if (!qty || qty <= 0) return toast('Enter valid quantity');
+  if (!sellTotal || sellTotal <= 0) return toast('Enter total selling price');
+
+  const remaining = remainingQty(p);
+  if (qty > remaining + 0.0001) return toast(`Cannot sell more than ${remaining.toFixed(2)} available`);
+
+  const costs = {
+    transport: parseFloat(document.getElementById('sCostTransport').value) || 0,
+    labour: parseFloat(document.getElementById('sCostLabour').value) || 0,
+    agent: parseFloat(document.getElementById('sCostAgent').value) || 0,
+    misc: parseFloat(document.getElementById('sCostMisc').value) || 0
+  };
+  const customExpenses = getCustomExpenses('sCustomExpenseList');
+  const totalExpenses = Object.values(costs).reduce((a,b) => a+b, 0) + customExpenses.reduce((s,e) => s+e.amount, 0);
+
+  const costOfGoods = (qty / p.qty) * p.totalCost;
+  const netProfit = sellTotal - costOfGoods - totalExpenses;
 
   p.sales.push({
-    id: uid(),
-    date: saleDate,
-    buyer,
-    qty: qtySold,
-    sellTotal,
-    costShare,
-    profit,
-    sellPerUnit: sellTotal / qtySold
+    id: uid(), date, buyer, qty, sellTotal, costs, customExpenses,
+    costOfGoods, totalExpenses, profit: netProfit, sellPerUnit: sellTotal / qty
   });
 
-  saveToCloud(); renderAll();
-  toast('Sale added');
+  saveToCloud(); 
+  renderAll(); 
+  
+  // Reset form
+  document.getElementById('sQty').value = '';
+  document.getElementById('sSellTotal').value = '';
+  document.getElementById('sBuyer').value = '';
+  ['sCostTransport','sCostLabour','sCostAgent','sCostMisc'].forEach(id => document.getElementById(id).value = '');
+  clearCustomExpenses('sCustomExpenseList');
+  
+  toast('Sale recorded successfully');
 }
 
 function deleteSale(purchaseId, saleId) {
@@ -829,6 +917,9 @@ function deleteSale(purchaseId, saleId) {
   toast('Sale deleted');
 }
 
+/* ============================================================
+   CALCULATION HELPERS
+============================================================ */
 function remainingQty(p) {
   const sold = p.sales.reduce((s, x) => s + x.qty, 0);
   return Math.max(0, p.qty - sold);
@@ -836,59 +927,15 @@ function remainingQty(p) {
 function purchaseRevenue(p) { return p.sales.reduce((s, x) => s + x.sellTotal, 0); }
 function purchaseProfit(p) { return p.sales.reduce((s, x) => s + x.profit, 0); }
 
-function toggleSalesDetail(purchaseId) {
-  const area = document.getElementById('salesDetailArea');
-  const p = db.purchases.find(x => x.id === purchaseId);
-  if (!p) return;
-  area.innerHTML = '';
-  const wrap = document.createElement('div');
-  wrap.className = 'card';
-  wrap.innerHTML = `
-    <h2>Sales for: ${p.mineral} — ${p.qty} ${unitLabel(p.unit)} from ${p.supplier || '—'}</h2>
-    <div class="scroll">
-      <table>
-        <thead><tr>
-          <th>Date</th><th>Buyer</th><th class="amt">Qty</th>
-          <th class="amt">Sell Total</th><th class="amt">Sell/unit</th>
-          <th class="amt">Profit</th><th></th>
-        </tr></thead>
-        <tbody>
-          ${p.sales.length === 0
-            ? '<tr><td colspan="7" class="empty">No sales yet</td></tr>'
-            : p.sales.map(s => `
-              <tr>
-                <td>${s.date}</td>
-                <td>${s.buyer}</td>
-                <td class="amt">${s.qty} ${unitLabel(p.unit)}</td>
-                <td class="amt">${fmt(s.sellTotal)}</td>
-                <td class="amt">${fmt(s.sellPerUnit)}</td>
-                <td class="amt ${s.profit >= 0 ? 'pos' : 'neg'}">${fmt(s.profit)}</td>
-                <td><button class="btn-danger btn-small" onclick="deleteSale('${p.id}','${s.id}')">✕</button></td>
-              </tr>`).join('')
-          }
-        </tbody>
-      </table>
-    </div>
-    <div class="actions">
-      <button class="btn-success" onclick="addSale('${p.id}')">➕ Add Sale</button>
-      <button class="btn-ghost" onclick="document.getElementById('salesDetailArea').innerHTML=''">Close</button>
-    </div>
-  `;
-  area.appendChild(wrap);
-  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
 /* ============================================================
-   RENDER — PURCHASES
+   RENDER PURCHASES
 ============================================================ */
 function renderPurchases() {
   const tb = document.querySelector('#purchasesTable tbody');
   tb.innerHTML = '';
   const rows = [...db.purchases].sort((a,b) => b.date.localeCompare(a.date));
-  if (!rows.length) {
-    tb.innerHTML = '<tr><td colspan="11" class="empty">No purchases yet</td></tr>';
-    return;
-  }
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="11" class="empty">No purchases yet</td></tr>'; return; }
+  
   rows.forEach(p => {
     const sold = p.qty - remainingQty(p);
     const rem = remainingQty(p);
@@ -899,9 +946,7 @@ function renderPurchases() {
                   : '<span class="badge partial">Partial</span>';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${p.date}</td>
-      <td>${p.mineral}</td>
-      <td>${p.supplier || '—'}</td>
+      <td>${p.date}</td><td>${p.mineral}</td><td>${p.supplier || '—'}</td>
       <td class="amt">${p.qty} ${unitLabel(p.unit)}</td>
       <td class="amt">${sold.toFixed(2)}</td>
       <td class="amt">${rem.toFixed(2)}</td>
@@ -909,25 +954,42 @@ function renderPurchases() {
       <td class="amt">${revenue ? fmtInt(revenue) : '—'}</td>
       <td class="amt ${profit > 0 ? 'pos' : profit < 0 ? 'neg' : ''}">${profit ? fmtInt(profit) : '—'}</td>
       <td>${status}</td>
-      <td>
-        <button class="btn-success btn-small" onclick="addSale('${p.id}')">+Sale</button>
-        <button class="btn-ghost btn-small" onclick="toggleSalesDetail('${p.id}')">View</button>
-        <button class="btn-danger btn-small" onclick="deletePurchase('${p.id}')">✕</button>
-      </td>
+      <td><button class="btn-ghost btn-small" onclick="viewPurchaseDetail('${p.id}')">View</button></td>
     `;
     tb.appendChild(tr);
   });
 }
 
+function viewPurchaseDetail(id) {
+  const p = db.purchases.find(x => x.id === id);
+  if (!p) return;
+  const area = document.getElementById('salesDetailArea');
+  area.innerHTML = `
+    <div class="card">
+      <h2>Details: ${p.mineral} from ${p.supplier || '—'}</h2>
+      <p class="muted">Total Cost: ₦${fmt(p.totalCost)} | Cost per unit: ₦${fmt(p.costPerUnit)} / ${unitLabel(p.unit)}</p>
+      <h3 style="margin-top:12px">Purchase Expenses</h3>
+      <p class="muted">
+        Transport: ₦${fmt(p.costs.transport || 0)} | Labour: ₦${fmt(p.costs.labour || 0)} | Equipment: ₦${fmt(p.costs.equipment || 0)} <br>
+        Site: ₦${fmt(p.costs.site || 0)} | Processing: ₦${fmt(p.costs.processing || 0)} | Misc: ₦${fmt(p.costs.misc || 0)}
+      </p>
+      ${(p.customExpenses && p.customExpenses.length) ? `
+        <p class="muted">Custom: ${p.customExpenses.map(c => `${c.description} (₦${fmt(c.amount)})`).join(', ')}</p>
+      ` : ''}
+      <div class="actions"><button class="btn-ghost" onclick="document.getElementById('salesDetailArea').innerHTML=''">Close</button></div>
+    </div>
+  `;
+}
+
 /* ============================================================
-   RENDER — INVENTORY
+   RENDER INVENTORY
 ============================================================ */
 function renderInventory() {
   const open = db.purchases.filter(p => remainingQty(p) > 0.0001);
   const totalInvested = open.reduce((s, p) => s + (remainingQty(p) / p.qty) * p.totalCost, 0);
 
   document.getElementById('inventoryStats').innerHTML = `
-    <div class="stat"><div class="label">Open Purchases</div><div class="value">${open.length}</div></div>
+    <div class="stat"><div class="label">Open Batches</div><div class="value">${open.length}</div></div>
     <div class="stat"><div class="label">Stock Value (₦)</div><div class="value">₦${fmtInt(totalInvested)}</div></div>
   `;
 
@@ -944,157 +1006,76 @@ function renderInventory() {
   const invTb = document.querySelector('#inventoryTable tbody');
   const entries = Object.entries(byMineral);
   if (!entries.length) {
-    invTb.innerHTML = '<tr><td colspan="5" class="empty">No stock held</td></tr>';
+    invTb.innerHTML = '<tr><td colspan="4" class="empty">No stock held</td></tr>';
   } else {
     invTb.innerHTML = entries.map(([mineral, d]) => `
-      <tr>
-        <td>${mineral}</td>
-        <td class="amt">${d.qty.toFixed(2)} ${unitLabel(d.unit)}</td>
-        <td class="amt">${fmtInt(d.invested)}</td>
-        <td class="amt">${fmtInt(d.invested / d.qty)} / ${unitLabel(d.unit)}</td>
-        <td class="amt">${d.count}</td>
-      </tr>
+      <tr><td>${mineral}</td><td class="amt">${d.qty.toFixed(2)} ${unitLabel(d.unit)}</td><td class="amt">${fmtInt(d.invested)}</td><td class="amt">${fmtInt(d.invested / d.qty)}</td></tr>
     `).join('');
-  }
-
-  const openTb = document.querySelector('#openPurchasesTable tbody');
-  if (!open.length) {
-    openTb.innerHTML = '<tr><td colspan="7" class="empty">No open purchases</td></tr>';
-  } else {
-    openTb.innerHTML = open
-      .sort((a,b) => b.date.localeCompare(a.date))
-      .map(p => {
-        const rem = remainingQty(p);
-        const invested = (rem / p.qty) * p.totalCost;
-        return `<tr>
-          <td>${p.date}</td>
-          <td>${p.mineral}</td>
-          <td>${p.supplier || '—'}</td>
-          <td class="amt">${rem.toFixed(2)} ${unitLabel(p.unit)}</td>
-          <td class="amt">${fmtInt(invested)}</td>
-          <td class="amt">${fmtInt(p.costPerUnit)} / ${unitLabel(p.unit)}</td>
-          <td><button class="btn-success btn-small" onclick="addSale('${p.id}')">+Sale</button></td>
-        </tr>`;
-      }).join('');
   }
 }
 
 /* ============================================================
-   RENDER — BY MINERAL
+   RENDER BY MINERAL
 ============================================================ */
 function renderMineralsSummary() {
   const map = {};
   db.purchases.forEach(p => {
-    if (!map[p.mineral]) map[p.mineral] = {
-      boughtQty: 0, soldQty: 0, unit: p.unit, invested: 0, revenue: 0, profit: 0
-    };
+    if (!map[p.mineral]) map[p.mineral] = { boughtQty: 0, soldQty: 0, unit: p.unit, revenue: 0, profit: 0 };
     const m = map[p.mineral];
     m.boughtQty += p.qty;
     m.soldQty += p.qty - remainingQty(p);
-    m.invested += p.totalCost;
     m.revenue += purchaseRevenue(p);
     m.profit += purchaseProfit(p);
   });
   const tb = document.querySelector('#mineralsTable tbody');
   const entries = Object.entries(map).sort((a,b) => b[1].profit - a[1].profit);
-  if (!entries.length) {
-    tb.innerHTML = '<tr><td colspan="9" class="empty">No data yet</td></tr>';
-    return;
-  }
+  if (!entries.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">No data yet</td></tr>'; return; }
+  
   tb.innerHTML = entries.map(([mineral, m]) => {
     const remaining = m.boughtQty - m.soldQty;
-    const avgBuy = m.boughtQty ? m.invested / m.boughtQty : 0;
-    const avgSell = m.soldQty ? m.revenue / m.soldQty : 0;
     return `<tr>
       <td>${mineral}</td>
       <td class="amt">${m.boughtQty.toFixed(2)} ${unitLabel(m.unit)}</td>
       <td class="amt">${m.soldQty.toFixed(2)}</td>
       <td class="amt">${remaining.toFixed(2)}</td>
-      <td class="amt">${fmtInt(m.invested)}</td>
       <td class="amt">${fmtInt(m.revenue)}</td>
       <td class="amt ${m.profit >= 0 ? 'pos' : 'neg'}">${fmtInt(m.profit)}</td>
-      <td class="amt">${fmtInt(avgBuy)}</td>
-      <td class="amt">${fmtInt(avgSell)}</td>
     </tr>`;
   }).join('');
 }
 
 /* ============================================================
-   RENDER — SUPPLIERS & BUYERS
+   RENDER SUPPLIERS & BUYERS
 ============================================================ */
 function renderSuppliersBuyers() {
   const supp = {};
   db.purchases.forEach(p => {
     if (!p.supplier) return;
-    if (!supp[p.supplier]) supp[p.supplier] = { count: 0, cost: 0, last: '' };
+    if (!supp[p.supplier]) supp[p.supplier] = { count: 0, cost: 0 };
     supp[p.supplier].count++;
     supp[p.supplier].cost += p.totalCost;
-    if (p.date > supp[p.supplier].last) supp[p.supplier].last = p.date;
   });
   const suppTb = document.querySelector('#suppliersTable tbody');
   const suppEntries = Object.entries(supp).sort((a,b) => b[1].cost - a[1].cost);
-  suppTb.innerHTML = suppEntries.length
-    ? suppEntries.map(([name, d]) => `
-      <tr>
-        <td>${name}</td>
-        <td class="amt">${d.count}</td>
-        <td class="amt">${fmtInt(d.cost)}</td>
-        <td class="amt">${fmtInt(d.cost / d.count)}</td>
-        <td>${d.last}</td>
-      </tr>
-    `).join('')
-    : '<tr><td colspan="5" class="empty">No suppliers yet</td></tr>';
+  suppTb.innerHTML = suppEntries.length ? suppEntries.map(([name, d]) => `<tr><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.cost)}</td></tr>`).join('') : '<tr><td colspan="3" class="empty">No suppliers yet</td></tr>';
 
   const buyers = {};
   db.purchases.forEach(p => {
     p.sales.forEach(s => {
-      if (!buyers[s.buyer]) buyers[s.buyer] = { count: 0, revenue: 0, last: '' };
+      if (!buyers[s.buyer]) buyers[s.buyer] = { count: 0, revenue: 0 };
       buyers[s.buyer].count++;
       buyers[s.buyer].revenue += s.sellTotal;
-      if (s.date > buyers[s.buyer].last) buyers[s.buyer].last = s.date;
     });
   });
   const buyTb = document.querySelector('#buyersTable tbody');
   const buyEntries = Object.entries(buyers).sort((a,b) => b[1].revenue - a[1].revenue);
-  buyTb.innerHTML = buyEntries.length
-    ? buyEntries.map(([name, d]) => `
-      <tr>
-        <td>${name}</td>
-        <td class="amt">${d.count}</td>
-        <td class="amt">${fmtInt(d.revenue)}</td>
-        <td class="amt">${fmtInt(d.revenue / d.count)}</td>
-        <td>${d.last}</td>
-      </tr>
-    `).join('')
-    : '<tr><td colspan="5" class="empty">No buyers yet</td></tr>';
+  buyTb.innerHTML = buyEntries.length ? buyEntries.map(([name, d]) => `<tr><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.revenue)}</td></tr>`).join('') : '<tr><td colspan="3" class="empty">No buyers yet</td></tr>';
 }
 
 /* ============================================================
-   DATE RANGES
+   DASHBOARD & INSIGHTS
 ============================================================ */
-function periodRange(period) {
-  const now = new Date();
-  const y = now.getFullYear(), m = now.getMonth();
-  if (period === 'week') {
-    const day = now.getDay();
-    const monday = new Date(now); monday.setDate(now.getDate() - ((day+6)%7));
-    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-    return [monday.toISOString().slice(0,10), sunday.toISOString().slice(0,10)];
-  }
-  if (period === 'month') {
-    const start = new Date(y, m, 1).toISOString().slice(0,10);
-    const end = new Date(y, m+1, 0).toISOString().slice(0,10);
-    return [start, end];
-  }
-  if (period === 'year') return [`${y}-01-01`, `${y}-12-31`];
-  return null;
-}
-function inRange(date, start, end) { return date >= start && date <= end; }
-
-/* ============================================================
-   DASHBOARD
-============================================================ */
-let profitTrendChart, weightChart;
+let profitTrendChart;
 
 document.getElementById('dashPeriod').addEventListener('change', e => {
   const custom = e.target.value === 'custom';
@@ -1107,14 +1088,31 @@ document.getElementById('dashEnd').addEventListener('change', renderDashboard);
 
 function getActiveRange() {
   const period = document.getElementById('dashPeriod').value;
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  
+  if (period === 'daily') {
+    const d = now.toISOString().slice(0,10); return [d, d];
+  }
+  if (period === 'week') {
+    const day = now.getDay();
+    const monday = new Date(now); monday.setDate(now.getDate() - ((day+6)%7));
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    return [monday.toISOString().slice(0,10), sunday.toISOString().slice(0,10)];
+  }
+  if (period === 'month') {
+    return [new Date(y, m, 1).toISOString().slice(0,10), new Date(y, m+1, 0).toISOString().slice(0,10)];
+  }
+  if (period === 'year') return [`${y}-01-01`, `${y}-12-31`];
   if (period === 'custom') {
     const s = document.getElementById('dashStart').value;
     const e = document.getElementById('dashEnd').value;
     if (s && e) return [s, e];
-    return periodRange('month');
   }
-  return periodRange(period);
+  return [new Date(y, m, 1).toISOString().slice(0,10), new Date(y, m+1, 0).toISOString().slice(0,10)];
 }
+
+function inRange(date, start, end) { return date >= start && date <= end; }
 
 function aggregate(start, end) {
   const purchases = db.purchases.filter(p => inRange(p.date, start, end));
@@ -1126,18 +1124,10 @@ function aggregate(start, end) {
   });
 
   const totalInvested = purchases.reduce((s, p) => s + p.totalCost, 0);
-  const totalBoughtKg = purchases.reduce((s, p) => s + p.qtyKg, 0);
-  const totalSoldKg = allSales.reduce((s, x) => s + toKg(x.sale.qty, x.purchase.unit), 0);
   const revenue = allSales.reduce((s, x) => s + x.sale.sellTotal, 0);
   const profit = allSales.reduce((s, x) => s + x.sale.profit, 0);
-  const open = db.purchases.filter(p => remainingQty(p) > 0.0001);
-  const stockValue = open.reduce((s, p) => s + (remainingQty(p) / p.qty) * p.totalCost, 0);
-
-  return {
-    purchasesCount: purchases.length,
-    salesCount: allSales.length,
-    totalInvested, totalBoughtKg, totalSoldKg, revenue, profit, stockValue
-  };
+  
+  return { purchasesCount: purchases.length, salesCount: allSales.length, totalInvested, revenue, profit };
 }
 
 function renderDashboard() {
@@ -1147,16 +1137,13 @@ function renderDashboard() {
 
   const a = aggregate(start, end);
   document.getElementById('dashStats').innerHTML = `
-    <div class="stat"><div class="label">Purchases</div><div class="value">${a.purchasesCount}</div></div>
-    <div class="stat"><div class="label">Sales</div><div class="value">${a.salesCount}</div></div>
-    <div class="stat"><div class="label">Total Invested</div><div class="value">₦${fmtInt(a.totalInvested)}</div></div>
     <div class="stat"><div class="label">Revenue</div><div class="value pos">₦${fmtInt(a.revenue)}</div></div>
-    <div class="stat"><div class="label">Profit</div><div class="value ${a.profit >= 0 ? 'pos' : 'neg'}">₦${fmtInt(a.profit)}</div></div>
-    <div class="stat"><div class="label">Bought (kg)</div><div class="value">${a.totalBoughtKg.toFixed(1)}</div></div>
-    <div class="stat"><div class="label">Sold (kg)</div><div class="value">${a.totalSoldKg.toFixed(1)}</div></div>
-    <div class="stat"><div class="label">Stock Value</div><div class="value">₦${fmtInt(a.stockValue)}</div></div>
+    <div class="stat"><div class="label">Net Profit</div><div class="value ${a.profit >= 0 ? 'pos' : 'neg'}">₦${fmtInt(a.profit)}</div></div>
+    <div class="stat"><div class="label">Purchases</div><div class="value">${a.purchasesCount}</div></div
+    <div class="stat"><div class="label">Sales Made</div><div class="value">${a.salesCount}</div></div>
   `;
 
+  // Profit Trend Chart
   const byDate = {};
   db.purchases.forEach(p => {
     p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
@@ -1164,6 +1151,7 @@ function renderDashboard() {
     });
   });
   const dates = Object.keys(byDate).sort();
+  
   const ctx1 = document.getElementById('profitTrendChart').getContext('2d');
   if (profitTrendChart) profitTrendChart.destroy();
   profitTrendChart = new Chart(ctx1, {
@@ -1188,27 +1176,7 @@ function renderDashboard() {
     }
   });
 
-  const ctx2 = document.getElementById('weightChart').getContext('2d');
-  if (weightChart) weightChart.destroy();
-  weightChart = new Chart(ctx2, {
-    type: 'bar',
-    data: {
-      labels: ['Bought', 'Sold'],
-      datasets: [{
-        data: [a.totalBoughtKg, a.totalSoldKg],
-        backgroundColor: ['#eab308', '#22c55e']
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-        x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
-      }
-    }
-  });
-
+  // Top Suppliers & Buyers Tables
   const supp = {};
   db.purchases.filter(p => inRange(p.date, start, end)).forEach(p => {
     if (!p.supplier) return;
@@ -1216,13 +1184,10 @@ function renderDashboard() {
     supp[p.supplier].count++;
     supp[p.supplier].cost += p.totalCost;
   });
-  const suppEntries = Object.entries(supp).sort((a,b) => b[1].cost - a[1].cost).slice(0, 10);
+  const suppEntries = Object.entries(supp).sort((a,b) => b[1].cost - a[1].cost).slice(0, 5);
   document.querySelector('#topSuppliersTable tbody').innerHTML = suppEntries.length
-    ? suppEntries.map(([name, d], i) => {
-        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
-        return `<tr><td>${medal}</td><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.cost)}</td></tr>`;
-      }).join('')
-    : '<tr><td colspan="4" class="empty">No suppliers in this period</td></tr>';
+    ? suppEntries.map(([name, d], i) => `<tr><td>${i+1}</td><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.cost)}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="empty">No data</td></tr>';
 
   const buyers = {};
   db.purchases.forEach(p => {
@@ -1232,39 +1197,84 @@ function renderDashboard() {
       buyers[s.buyer].revenue += s.sellTotal;
     });
   });
-  const buyEntries = Object.entries(buyers).sort((a,b) => b[1].revenue - a[1].revenue).slice(0, 10);
+  const buyEntries = Object.entries(buyers).sort((a,b) => b[1].revenue - a[1].revenue).slice(0, 5);
   document.querySelector('#topBuyersTable tbody').innerHTML = buyEntries.length
-    ? buyEntries.map(([name, d], i) => {
-        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
-        return `<tr><td>${medal}</td><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.revenue)}</td></tr>`;
-      }).join('')
-    : '<tr><td colspan="4" class="empty">No buyers in this period</td></tr>';
+    ? buyEntries.map(([name, d], i) => `<tr><td>${i+1}</td><td>${name}</td><td class="amt">${d.count}</td><td class="amt">${fmtInt(d.revenue)}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="empty">No data</td></tr>';
 
-  const insights = [];
-  if (suppEntries.length) insights.push(`🏆 Top supplier: <strong>${suppEntries[0][0]}</strong> (₦${fmtInt(suppEntries[0][1].cost)})`);
-  if (buyEntries.length) insights.push(`🏆 Top buyer: <strong>${buyEntries[0][0]}</strong> (₦${fmtInt(buyEntries[0][1].revenue)})`);
-  if (a.revenue && a.profit) insights.push(`💹 Profit margin: <strong>${(a.profit / a.revenue * 100).toFixed(1)}%</strong>`);
-  if (a.stockValue > 0) insights.push(`📦 Stock value currently held: ₦${fmtInt(a.stockValue)}`);
-  if (a.purchasesCount === 0 && a.salesCount === 0) insights.push('No activity in this period yet.');
-  document.getElementById('insights').innerHTML = insights.map(i => `<p style="margin:6px 0">${i}</p>`).join('');
+  // ==========================================
+  // BUSINESS INTELLIGENCE & ADVICE ENGINE
+  // ==========================================
+  const insightsDiv = document.getElementById('insights');
+  let insightsHtml = '';
+
+  if (a.salesCount === 0) {
+    insightsDiv.innerHTML = '<p class="muted">Not enough data in this period to generate insights.</p>';
+    return;
+  }
+
+  // 1. Profit Margin Analysis
+  const margin = (a.profit / a.revenue) * 100;
+  let marginAdvice = '';
+  if (margin >= 30) marginAdvice = "Excellent! Your profit margin is very healthy. Consider scaling up your operations.";
+  else if (margin >= 15) marginAdvice = "Good profit margin. Keep an eye on your sales expenses to maximize returns.";
+  else marginAdvice = "⚠️ Your profit margin is low. Review your sales transport and labour costs to see where you can cut back.";
+  
+  insightsHtml += `
+    <div class="insight-box">
+      <h4>📊 Profit Margin Analysis</h4>
+      <p>Your profit margin is <strong>${margin.toFixed(1)}%</strong>. ${marginAdvice}</p>
+    </div>
+  `;
+
+  // 2. Best Performing Mineral
+  const mineralTotals = {};
+  db.purchases.forEach(p => {
+    p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
+      if (!mineralTotals[p.mineral]) mineralTotals[p.mineral] = 0;
+      mineralTotals[p.mineral] += s.profit;
+    });
+  });
+  const bestMineral = Object.entries(mineralTotals).sort((a,b) => b[1] - a[1])[0];
+  if (bestMineral) {
+    insightsHtml += `
+      <div class="insight-box">
+        <h4>🏆 Best Performing Mineral</h4>
+        <p><strong>${bestMineral[0]}</strong> is generating the highest profit this period (₦${fmtInt(bestMineral[1])}). Focus on sourcing more of this material.</p>
+      </div>
+    `;
+  }
+
+  // 3. Outstanding Stock (Cash Flow)
+  const openStockValue = db.purchases.reduce((s, p) => s + (remainingQty(p) / p.qty) * p.totalCost, 0);
+  if (openStockValue > 0) {
+    insightsHtml += `
+      <div class="insight-box">
+        <h4>📦 Cash Flow Alert</h4>
+        <p>You currently have <strong>₦${fmtInt(openStockValue)}</strong> tied up in unsold inventory. Consider accelerating sales to free up cash for new investments.</p>
+      </div>
+    `;
+  }
+
+  // 4. Projection (Based on current month average)
+  if (document.getElementById('dashPeriod').value === 'month') {
+    const dayOfMonth = new Date().getDate();
+    const projectedRevenue = (a.revenue / dayOfMonth) * 30;
+    const projectedProfit = (a.profit / dayOfMonth) * 30;
+    insightsHtml += `
+      <div class="insight-box">
+        <h4>🚀 Monthly Projection</h4>
+        <p>Based on your current pace, you are projected to end the month with roughly <strong>₦${fmtInt(projectedRevenue)}</strong> in revenue and <strong>₦${fmtInt(projectedProfit)}</strong> in net profit.</p>
+      </div>
+    `;
+  }
+
+  insightsDiv.innerHTML = insightsHtml;
 }
 
 /* ============================================================
-   DATA PANEL
+   DATA EXPORT / IMPORT
 ============================================================ */
-function renderDataStats() {
-  const totalPurchases = db.purchases.length;
-  const totalSales = db.purchases.reduce((s, p) => s + p.sales.length, 0);
-  const totalRevenue = db.purchases.reduce((s, p) => s + purchaseRevenue(p), 0);
-  const totalProfit = db.purchases.reduce((s, p) => s + purchaseProfit(p), 0);
-  document.getElementById('dataStats').innerHTML = `
-    <div class="stat"><div class="label">Purchases</div><div class="value">${totalPurchases}</div></div>
-    <div class="stat"><div class="label">Sales</div><div class="value">${totalSales}</div></div>
-    <div class="stat"><div class="label">Total Revenue</div><div class="value pos">₦${fmtInt(totalRevenue)}</div></div>
-    <div class="stat"><div class="label">Total Profit</div><div class="value ${totalProfit >= 0 ? 'pos' : 'neg'}">₦${fmtInt(totalProfit)}</div></div>
-  `;
-}
-
 function exportData() {
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1282,8 +1292,9 @@ function importData(evt) {
     try {
       const data = JSON.parse(e.target.result);
       if (!data.purchases) throw new Error('Invalid backup');
-      if (!confirm('This will OVERWRITE cloud data with this backup. Continue?')) return;
+      if (!confirm('This will OVERWRITE your cloud data with this backup. Continue?')) return;
       db = data;
+      db.purchases = db.purchases.map(migrateData);
       saveToCloudNow();
       renderAll();
       toast('Backup imported to cloud');
@@ -1298,27 +1309,32 @@ function importData(evt) {
 ============================================================ */
 function renderAll() {
   renderPurchases();
+  renderSalesPortal();
   renderInventory();
   renderMineralsSummary();
   renderSuppliersBuyers();
   renderDashboard();
-  renderDataStats();
 }
 
-// Expose functions to HTML onclick
+// Expose functions to HTML
 window.addPurchase = addPurchase;
 window.clearPurchaseForm = clearPurchaseForm;
-window.deletePurchase = deletePurchase;
-window.addSale = addSale;
-window.deleteSale = deleteSale;
-window.toggleSalesDetail = toggleSalesDetail;
+window.addCustomExpenseRow = addCustomExpenseRow;
+window.removeCustomExpenseRow = removeCustomExpenseRow;
 window.submitAuth = submitAuth;
 window.logout = logout;
 window.exportData = exportData;
 window.importData = importData;
+window.updateSaleFormInfo = updateSaleFormInfo;
+window.recalcSaleForm = recalcSaleForm;
+window.submitSale = submitSale;
+window.deleteSale = deleteSale;
+window.viewPurchaseDetail = viewPurchaseDetail;
+window.recalcForm = recalcForm;
 
-// Set today's date in purchase form
+// Set dates
 document.getElementById('pDate').value = today();
+document.getElementById('sDate').value = today();
 
 // Register service worker
 if ('serviceWorker' in navigator) {
