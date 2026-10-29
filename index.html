@@ -149,7 +149,8 @@
   .insight-box.success h4 { color: var(--green); }
 
   /* MARKET & NEWS */
-  .market-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .market-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+  .market-row:hover { background: rgba(255,255,255,0.02); }
   .market-row:last-child { border-bottom: none; }
   .market-name { font-weight: 600; color: var(--text); }
   .market-price { font-family: monospace; font-size: 1rem; color: var(--accent); }
@@ -484,22 +485,64 @@
 <!-- ================= GLOBAL MARKET ================= -->
 <div id="market" class="panel">
   <div class="card">
-    <h2>🌍 Live Market Prices (Naira / KG)</h2>
-    <p class="muted" style="margin-bottom:12px">Estimated local buying/selling rates based on global LME spot prices and daily exchange rates.</p>
-    <div id="marketPrices">
-      <div class="empty">Loading market data...</div>
+    <h2>🌍 Global Mineral Prices & Trends</h2>
+    <p class="muted" style="margin-bottom:12px">Tap any portal below to view real-time international prices and industry analysis in a new tab.</p>
+    
+    <div class="market-row" style="cursor:pointer;" onclick="window.open('https://metalscost.com/todays-price/tin/nigeria', '_blank')">
+      <div>
+        <div class="market-name" style="color:var(--accent);">🇳🇬 MetalsCost Nigeria</div>
+        <div class="muted">Live Tin prices in Naira per KG</div>
+      </div>
+      <div style="text-align:right; color:var(--accent); font-size:1.2rem;">↗</div>
     </div>
-    <div class="muted" style="font-size:0.7rem; margin-top:10px;">* Prices are estimates. Always verify with your local buyer/supplier.</div>
+
+    <div class="market-row" style="cursor:pointer;" onclick="window.open('https://www.lme.com/en/metals/non-ferrous/lme-tin', '_blank')">
+      <div>
+        <div class="market-name" style="color:var(--accent);">🇬🇧 London Metal Exchange (LME)</div>
+        <div class="muted">Official Global Tin & Lead Spot Prices</div>
+      </div>
+      <div style="text-align:right; color:var(--accent); font-size:1.2rem;">↗</div>
+    </div>
+
+    <div class="market-row" style="cursor:pointer;" onclick="window.open('https://www.metal.com/en/metalprice/tin', '_blank')">
+      <div>
+        <div class="market-name" style="color:var(--accent);">🇨🇳 SMM Metal Market</div>
+        <div class="muted">Asian Market Trends & Pricing</div>
+      </div>
+      <div style="text-align:right; color:var(--accent); font-size:1.2rem;">↗</div>
+    </div>
   </div>
 
   <div class="card">
     <h2>📰 Daily Industry Signals & News</h2>
-    <p class="muted" style="margin-bottom:12px">Key events driving supply, demand, and price changes in the mining sector.</p>
-    <div id="marketNews">
-      <div class="empty">Loading news...</div>
+    <p class="muted" style="margin-bottom:12px">Tap any headline to read the full article and understand market movements.</p>
+    
+    <div class="market-row" style="cursor:pointer;" onclick="window.open('https://rareearthexchanges.com/', '_blank')">
+      <div>
+        <div class="market-name" style="color:var(--accent);">Rare Earth Exchanges</div>
+        <div class="muted">Critical minerals & Monazite analysis</div>
+      </div>
+      <div style="text-align:right; color:var(--accent); font-size:1.2rem;">↗</div>
+    </div>
+
+    <div class="market-row" style="cursor:pointer;" onclick="window.open('https://nannews.ng/tag/solid/', '_blank')">
+      <div>
+        <div class="market-name" style="color:var(--accent);">News Agency of Nigeria</div>
+        <div class="muted">Nigerian solid minerals policy & updates</div>
+      </div>
+      <div style="text-align:right; color:var(--accent); font-size:1.2rem;">↗</div>
+    </div>
+
+    <div class="market-row" style="cursor:pointer;" onclick="window.open('https://www.miningmx.com/', '_blank')">
+      <div>
+        <div class="market-name" style="color:var(--accent);">MiningMX</div>
+        <div class="muted">African mining industry news</div>
+      </div>
+      <div style="text-align:right; color:var(--accent); font-size:1.2rem;">↗</div>
     </div>
   </div>
 </div>
+
 <!-- ================= ADMIN PANEL ================= -->
 <div id="admin" class="panel">
   <div class="card">
@@ -893,148 +936,9 @@ document.querySelectorAll('.tab').forEach(tab => {
     if (tab.dataset.tab === 'suppliers') renderSuppliersBuyers();
     if (tab.dataset.tab === 'purchases') renderPurchases();
     if (tab.dataset.tab === 'sales') renderSalesPortal();
-    if (tab.dataset.tab === 'market') loadGlobalMarket();
   });
 });
 
-/* ============================================================
-   PHASE 2: GLOBAL MARKET & NEWS LOGIC (PROFESSIONAL)
-============================================================ */
-async function loadGlobalMarket() {
-  const priceDiv = document.getElementById('marketPrices');
-  const newsDiv = document.getElementById('marketNews');
-  
-  // Approximate Exchange Rate for Naira conversions (Update this as needed)
-  const USD_TO_NGN = 1600; 
-
-  // 1. FETCH GLOBAL LME PRICES & CONVERT TO NAIRA/KG
-  try {
-    // We use a free proxy to fetch global metal prices (Tin, Lead, Copper, Zinc)
-    const priceUrl = 'https://api.metalpriceapi.com/v1/latest?api_key=demo&base=USD&currencies=USD,LME-TIN,LME-LEAD,LME-COPPER,LME-ZINC';
-    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(priceUrl);
-    
-    const res = await fetch(proxyUrl);
-    const data = await res.json();
-    const prices = JSON.parse(data.contents);
-
-    if (prices && prices.rates) {
-      let html = '';
-      
-      // Helper to format NGN/KG
-      const calcNgnKg = (usdPerTonne) => {
-        if (!usdPerTonne) return '—';
-        // 1 Tonne = 1000 KG. Formula: (USD/Tonne / 1000) * Exchange Rate
-        const ngnPerKg = (usdPerTonne / 1000) * USD_TO_NGN;
-        return ngnPerKg.toLocaleString('en-NG', { maximumFractionDigits: 0 });
-      };
-
-      // LME prices are usually quoted per Tonne. 
-      const tinTonne = prices.rates['LME-TIN'] ? (1 / prices.rates['LME-TIN']) : 32000;
-      const leadTonne = prices.rates['LME-LEAD'] ? (1 / prices.rates['LME-LEAD']) : 2100;
-      const zincTonne = prices.rates['LME-ZINC'] ? (1 / prices.rates['LME-ZINC']) : 2500;
-
-      // Generate UI (Simulating trend based on static data for now)
-      html += `
-        <div class="market-row">
-          <div>
-            <div class="market-name">TIN (Global LME)</div>
-            <div class="muted">~ $${tinTonne.toFixed(0)}/tonne</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="market-price">₦${calcNgnKg(tinTonne)} / kg</div>
-            <div class="market-change up">▲ 1.20% (Demand High)</div>
-          </div>
-        </div>
-        
-        <div class="market-row">
-          <div>
-            <div class="market-name">LEAD (Global LME)</div>
-            <div class="muted">~ $${leadTonne.toFixed(0)}/tonne</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="market-price">₦${calcNgnKg(leadTonne)} / kg</div>
-            <div class="market-change down">▼ 0.40% (Stable)</div>
-          </div>
-        </div>
-
-        <div class="market-row">
-          <div>
-            <div class="market-name">ZINC (Global LME)</div>
-            <div class="muted">~ $${zincTonne.toFixed(0)}/tonne</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="market-price">₦${calcNgnKg(zincTonne)} / kg</div>
-            <div class="market-change up">▲ 0.80% (Rising)</div>
-          </div>
-        </div>
-      `;
-
-      // Custom insight based on market data
-      html += `
-        <div class="insight-box success" style="margin-top:15px;">
-          <h4>💡 Market Signal</h4>
-          <p>Tin prices are showing strong international demand. If you have Tin in stock, this is a good moment to negotiate a higher price with buyers. Ensure your purity is high to command the premium.</p>
-        </div>
-      `;
-      
-      priceDiv.innerHTML = html;
-    } else {
-      priceDiv.innerHTML = '<div class="empty">Could not load live prices. Check connection.</div>';
-    }
-  } catch (err) {
-    // Fallback static data so the app doesn't look broken
-    priceDiv.innerHTML = `
-      <div class="market-row">
-        <div>
-          <div class="market-name">TIN (Estimated)</div>
-          <div class="muted">Global Market</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="market-price">₦51,200 / kg</div>
-          <div class="market-change up">▲ High Demand</div>
-        </div>
-      </div>
-      <div class="market-row">
-        <div>
-          <div class="market-name">LEAD (Estimated)</div>
-          <div class="muted">Global Market</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="market-price">₦3,360 / kg</div>
-        </div>
-      </div>
-      <div class="muted" style="padding:10px; font-size:0.75rem;">Network offline. Showing standard estimate.</div>
-    `;
-  }
-
-  // 2. FETCH DAILY NEWS (From Rare Earth Exchanges RSS or similar)
-  try {
-    // We pull from a reliable mining news RSS feed via a proxy
-    const newsUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://rareearthexchanges.com/feed/');
-    
-    const res = await fetch(newsUrl);
-    const data = await res.json();
-
-    if (data.items && data.items.length > 0) {
-      let html = '';
-      data.items.slice(0, 4).forEach(item => {
-        const cleanDesc = item.description.replace(/<[^>]*>?/gm, '').substring(0, 120);
-        html += `
-          <div class="news-item">
-            <a href="${item.link}" target="_blank" class="news-title">${item.title}</a>
-            <div class="news-desc">${cleanDesc}...</div>
-            <div class="news-date">${new Date(item.pubDate).toLocaleDateString()}</div>
-          </div>
-        `;
-      });
-      newsDiv.innerHTML = html;
-    } else {
-      newsDiv.innerHTML = '<div class="empty">No new mining updates today.</div>';
-    }
-  } catch (err) {
-    newsDiv.innerHTML = '<div class="empty">Could not load industry news. Check connection.</div>';
-  }
-}
 /* ============================================================
    CUSTOM EXPENSES LOGIC
 ============================================================ */
