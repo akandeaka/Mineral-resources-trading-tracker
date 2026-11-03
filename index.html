@@ -523,7 +523,6 @@
       <div style="text-align:right; color:var(--accent); font-size:1.2rem;">↗</div>
     </div>
     
-    <!-- ADDED AFRICAN METALS LINK -->
     <div class="market-row" style="cursor:pointer;" onclick="window.open('https://www.africametalsminerals.com/products', '_blank')">
       <div>
         <div class="market-name" style="color:var(--accent);">🌍 African Metals & Minerals</div>
@@ -567,11 +566,20 @@
 <div id="admin" class="panel">
   <div class="card">
     <h2>Admin: Create New User</h2>
-    <p class="muted" style="margin-bottom:12px">Only you can see this. Create logins for your staff or partners here.</p>
+    <p class="muted" style="margin-bottom:12px">Create logins for your staff or partners here.</p>
+    
     <div class="row">
-      <div><label>New User Email</label><input type="email" id="newUserEmail" placeholder="staff@example.com" /></div>
-      <div><label>Temp Password</label><input type="text" id="newUserPass" placeholder="Min 6 chars" /></div>
+      <div style="flex: 2;"><label>New User Email</label><input type="email" id="newUserEmail" placeholder="staff@example.com" /></div>
+      <div style="flex: 1;"><label>Temp Password</label><input type="text" id="newUserPass" placeholder="Min 6 chars" /></div>
     </div>
+    
+    <div style="margin-top: 10px;">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="adminForceReset" style="width:20px; height:20px;">
+        <span>Let user create their own password (Sends email reset link)</span>
+      </label>
+    </div>
+
     <div class="actions">
       <button class="btn-primary" onclick="createNewUser()">➕ Create User</button>
     </div>
@@ -602,7 +610,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
-  createUserWithEmailAndPassword, updatePassword
+  createUserWithEmailAndPassword, updatePassword, sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, getDoc, enableIndexedDbPersistence
@@ -837,13 +845,17 @@ onAuthStateChanged(auth, async (user) => {
 async function createNewUser() {
   const email = document.getElementById('newUserEmail').value.trim();
   const pass = document.getElementById('newUserPass').value;
+  const forceReset = document.getElementById('adminForceReset').checked;
   const statusEl = document.getElementById('adminStatus');
   
-  if (!email || !pass) {
-    statusEl.innerHTML = '<span style="color:var(--red)">Please enter email and password.</span>';
+  if (!email) {
+    statusEl.innerHTML = '<span style="color:var(--red)">Please enter an email address.</span>';
     return;
   }
-  if (pass.length < 6) {
+  
+  const tempPass = forceReset ? Math.random().toString(36).slice(-10) + '!A1' : pass;
+  
+  if (!forceReset && (!pass || pass.length < 6)) {
     statusEl.innerHTML = '<span style="color:var(--red)">Temp password must be at least 6 characters.</span>';
     return;
   }
@@ -851,14 +863,23 @@ async function createNewUser() {
   statusEl.innerHTML = '<span style="color:var(--yellow)">Creating user...</span>';
 
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, tempPass);
+    
     await setDoc(doc(firestore, 'users', userCredential.user.uid, 'profile', 'main'), { 
-      requiresChange: true,
+      requiresChange: !forceReset, 
       email: email
     });
+    
+    if (forceReset) {
+      await sendPasswordResetEmail(auth, email);
+      statusEl.innerHTML = '<span style="color:var(--green)">✅ User created! Password reset email sent to their inbox.</span>';
+    } else {
+      statusEl.innerHTML = '<span style="color:var(--green)">✅ User created with temp password! They must change it on first login.</span>';
+    }
+
     await signOut(auth);
-    statusEl.innerHTML = '<span style="color:var(--green)">✅ User created! Please log back in.</span>';
     toast('User created. Please log back in.');
+    
   } catch (err) {
     statusEl.innerHTML = `<span style="color:var(--red)">Error: ${err.message}</span>`;
     if (!currentUser) location.reload();
