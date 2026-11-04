@@ -445,7 +445,7 @@
     </div>
 
     <div class="actions">
-      <button class="btn-success" onclick="submitSale()" style="width:100%">💾 Finalize & Save Sale</button>
+      <button class="btn-success" id="sSaveBtn" onclick="submitSale()" style="width:100%">💾 Finalize & Save Sale</button>
     </div>
   </div>
 
@@ -1322,47 +1322,60 @@ function recalcSaleForm() {
 function submitSale() {
   if (currentSaleCart.length === 0) return toast('Add at least one batch to the sale');
 
-  const date = document.getElementById('sDate').value || today();
-  const buyer = document.getElementById('sBuyer').value.trim();
-  const sellTotal = parseFloat(document.getElementById('sSellTotal').value) || 0;
+  const btn = document.getElementById('sSaveBtn');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
 
-  if (!buyer) return toast('Enter buyer name');
-  if (!sellTotal || sellTotal <= 0) return toast('Enter total selling price');
+  try {
+    const date = document.getElementById('sDate').value || today();
+    const buyer = document.getElementById('sBuyer').value.trim();
+    const sellTotal = parseFloat(document.getElementById('sSellTotal').value) || 0;
 
-  const costs = {
-    transport: parseFloat(document.getElementById('sCostTransport').value) || 0,
-    labour: parseFloat(document.getElementById('sCostLabour').value) || 0,
-    agent: parseFloat(document.getElementById('sCostAgent').value) || 0,
-    misc: parseFloat(document.getElementById('sCostMisc').value) || 0
-  };
-  const customExpenses = getCustomExpenses('sCustomExpenseList');
-  const totalExpenses = Object.values(costs).reduce((a,b) => a+b, 0) + customExpenses.reduce((s,e) => s+e.amount, 0);
+    if (!buyer) throw new Error('Enter buyer name');
+    if (!sellTotal || sellTotal <= 0) throw new Error('Enter total selling price');
 
-  const totalCostOfGoods = currentSaleCart.reduce((s, item) => s + item.costOfGoods, 0);
-  const netProfit = sellTotal - totalCostOfGoods - totalExpenses;
-  const saleId = uid();
+    const costs = {
+      transport: parseFloat(document.getElementById('sCostTransport').value) || 0,
+      labour: parseFloat(document.getElementById('sCostLabour').value) || 0,
+      agent: parseFloat(document.getElementById('sCostAgent').value) || 0,
+      misc: parseFloat(document.getElementById('sCostMisc').value) || 0
+    };
+    const customExpenses = getCustomExpenses('sCustomExpenseList');
+    const totalExpenses = Object.values(costs).reduce((a,b) => a+b, 0) + customExpenses.reduce((s,e) => s+e.amount, 0);
 
-  currentSaleCart.forEach(cartItem => {
-    const p = db.purchases.find(x => x.id === cartItem.purchaseId);
-    if (p) {
-      p.sales.push({
-        id: saleId, date, buyer, items: currentSaleCart, 
-        sellTotal, costs, customExpenses,
-        totalExpenses, costOfGoods: totalCostOfGoods, profit: netProfit, 
-        qty: cartItem.qty, sellPerUnit: sellTotal / currentSaleCart.reduce((s,c)=>s+c.qty,0) 
-      });
-    }
-  });
+    const totalCostOfGoods = currentSaleCart.reduce((s, item) => s + item.costOfGoods, 0);
+    const netProfit = sellTotal - totalCostOfGoods - totalExpenses;
+    const saleId = uid();
 
-  saveToCloud(); renderAll(); 
-  
-  currentSaleCart = [];
-  document.getElementById('sSellTotal').value = '';
-  document.getElementById('sBuyer').value = '';
-  ['sCostTransport','sCostLabour','sCostAgent','sCostMisc'].forEach(id => document.getElementById(id).value = '');
-  clearCustomExpenses('sCustomExpenseList');
-  renderSaleCart();
-  toast('Sale recorded successfully');
+    currentSaleCart.forEach(cartItem => {
+      const p = db.purchases.find(x => x.id === cartItem.purchaseId);
+      if (p) {
+        p.sales.push({
+          id: saleId, date, buyer, items: currentSaleCart, 
+          sellTotal, costs, customExpenses,
+          totalExpenses, costOfGoods: totalCostOfGoods, profit: netProfit, 
+          qty: cartItem.qty, sellPerUnit: sellTotal / currentSaleCart.reduce((s,c)=>s+c.qty,0) 
+        });
+      }
+    });
+
+    saveToCloud(); renderAll(); 
+    
+    currentSaleCart = [];
+    document.getElementById('sSellTotal').value = '';
+    document.getElementById('sBuyer').value = '';
+    ['sCostTransport','sCostLabour','sCostAgent','sCostMisc'].forEach(id => document.getElementById(id).value = '');
+    clearCustomExpenses('sCustomExpenseList');
+    renderSaleCart();
+    toast('Sale recorded successfully');
+
+  } catch (err) {
+    toast(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Finalize & Save Sale';
+  }
 }
 
 function deleteSale(saleId) {
@@ -1393,7 +1406,6 @@ function renderAllSalesHistory() {
     if (weightSum.lb > 0) wStr.push(`${weightSum.lb.toFixed(1)}lb`);
     if (weightSum.tonne > 0) wStr.push(`${weightSum.tonne.toFixed(1)}t`);
     
-    // Ensure grade is never undefined
     const minerals = s.items.map(i => `${i.mineral} (${i.grade || '—'})`).join(', ');
 
     tr.innerHTML = `
