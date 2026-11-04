@@ -300,9 +300,9 @@
     <table id="dashMineralsTable">
       <thead><tr>
         <th>Mineral & Grade</th>
-        <th class="amt">Total Cost of Goods Sold</th>
-        <th class="amt">Revenue</th>
-        <th class="amt">Profit</th>
+        <th class="amt">Total Sales</th>
+        <th class="amt">Total Expenses</th>
+        <th class="amt">Net Profit</th>
       </tr></thead>
       <tbody></tbody>
     </table>
@@ -454,8 +454,8 @@
     <table id="allSalesTable">
       <thead><tr>
         <th>Date</th><th>Buyer</th><th>Items Sold</th>
-        <th class="amt">Total Weight</th><th class="amt">Revenue</th>
-        <th class="amt">Profit</th><th>Actions</th>
+        <th class="amt">Total Weight</th><th class="amt">Sales</th>
+        <th class="amt">Total Expenses</th><th class="amt">Profit</th><th>Actions</th>
       </tr></thead>
       <tbody></tbody>
     </table>
@@ -481,7 +481,7 @@
     <table id="mineralsTable">
       <thead><tr>
         <th>Mineral</th><th class="amt">Bought</th><th class="amt">Sold</th><th class="amt">Remaining</th>
-        <th class="amt">Revenue</th><th class="amt">Profit</th>
+        <th class="amt">Sales</th><th class="amt">Profit</th>
       </tr></thead>
       <tbody></tbody>
     </table>
@@ -1395,7 +1395,7 @@ function renderAllSalesHistory() {
   });
 
   const allSales = Object.values(receipts).sort((a,b) => b.date.localeCompare(a.date));
-  if (!allSales.length) { tb.innerHTML = '<tr><td colspan="7" class="empty">No sales recorded yet</td></tr>'; return; }
+  if (!allSales.length) { tb.innerHTML = '<tr><td colspan="8" class="empty">No sales recorded yet</td></tr>'; return; }
 
   allSales.forEach(s => {
     const tr = document.createElement('tr');
@@ -1407,6 +1407,7 @@ function renderAllSalesHistory() {
     if (weightSum.tonne > 0) wStr.push(`${weightSum.tonne.toFixed(1)}t`);
     
     const minerals = s.items.map(i => `${i.mineral} (${i.grade || '—'})`).join(', ');
+    const totalExp = s.totalExpenses || 0;
 
     tr.innerHTML = `
       <td>${s.date}</td>
@@ -1414,6 +1415,7 @@ function renderAllSalesHistory() {
       <td>${minerals}</td>
       <td class="amt">${wStr.join(' + ')}</td>
       <td class="amt">${fmtInt(s.sellTotal)}</td>
+      <td class="amt neg">${fmtInt(totalExp)}</td>
       <td class="amt ${s.profit >= 0 ? 'pos' : 'neg'}">${fmtInt(s.profit)}</td>
       <td><button class="btn-danger btn-small" onclick="deleteSale('${s.id}')">✕</button></td>
     `;
@@ -1601,14 +1603,20 @@ function inRange(date, start, end) { return date >= start && date <= end; }
 function aggregate(start, end) {
   const purchases = db.purchases.filter(p => inRange(p.date, start, end));
   const allSales = [];
+  const processedSaleIds = new Set(); // PREVENTS DUPLICATES
+
   db.purchases.forEach(p => {
-    p.sales.filter(s => inRange(s.date, start, end)).forEach(s => { allSales.push({ sale: s, purchase: p }); });
+    p.sales.filter(s => inRange(s.date, start, end)).forEach(s => {
+      if (processedSaleIds.has(s.id)) return; 
+      processedSaleIds.add(s.id);
+      allSales.push({ sale: s, purchase: p });
+    });
   });
 
   const totalInvested = purchases.reduce((s, p) => s + p.totalCost, 0);
   const revenue = allSales.reduce((s, x) => s + x.sale.sellTotal, 0);
   const profit = allSales.reduce((s, x) => s + x.sale.profit, 0);
-  const totalExpenses = totalInvested + (revenue - profit - totalInvested); // Simplified: total cost of goods + sales expenses
+  const totalExpenses = totalInvested + (revenue - profit - totalInvested); 
   
   let transportCost = 0, labourCost = 0;
   purchases.forEach(p => { transportCost += (p.costs.transport||0); labourCost += (p.costs.labour||0); });
@@ -1665,8 +1673,8 @@ function renderDashboard() {
     dashMinTb.innerHTML = mineralEntries.map(([key, d]) => `
       <tr>
         <td><strong>${key}</strong></td>
-        <td class="amt neg">₦${fmtInt(d.spent)}</td>
         <td class="amt pos">₦${fmtInt(d.revenue)}</td>
+        <td class="amt neg">₦${fmtInt(d.spent)}</td>
         <td class="amt ${d.profit >= 0 ? 'pos' : 'neg'}"><strong>₦${fmtInt(d.profit)}</strong></td>
       </tr>
     `).join('');
