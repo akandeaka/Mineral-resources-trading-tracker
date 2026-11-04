@@ -1129,7 +1129,7 @@ function addPurchase() {
   const editId = document.getElementById('pEditId').value;
   const date = document.getElementById('pDate').value || today();
   const mineral = document.getElementById('pMineral').value;
-  const grade = document.getElementById('pGrade').value.trim();
+  const grade = document.getElementById('pGrade').value.trim() || '—';
   const supplier = document.getElementById('pSupplier').value.trim();
   const location = document.getElementById('pLocation').value.trim();
   const qty = parseFloat(document.getElementById('pQty').value) || 0;
@@ -1153,7 +1153,7 @@ function addPurchase() {
   if (editId) {
     const p = db.purchases.find(x => x.id === editId);
     if (p) {
-      p.date = date; p.mineral = mineral; p.grade = grade || '—'; p.supplier = supplier; p.location = location;
+      p.date = date; p.mineral = mineral; p.grade = grade; p.supplier = supplier; p.location = location;
       p.qty = qty; p.unit = unit; p.qtyKg = toKg(qty, unit);
       p.purchaseCost = purchaseCost; p.costs = costs; p.customExpenses = customExpenses;
       p.totalCost = totalCost; p.costPerUnit = totalCost / qty;
@@ -1162,7 +1162,7 @@ function addPurchase() {
     toast('Purchase updated');
   } else {
     db.purchases.push({
-      id: uid(), date, mineral, grade: grade || '—', supplier, location, qty, unit, qtyKg: toKg(qty, unit),
+      id: uid(), date, mineral, grade, supplier, location, qty, unit, qtyKg: toKg(qty, unit),
       purchaseCost, costs, customExpenses, totalCost, costPerUnit: totalCost / qty,
       sales: [], notes: document.getElementById('pNotes').value.trim()
     });
@@ -1392,7 +1392,9 @@ function renderAllSalesHistory() {
     if (weightSum.kg > 0) wStr.push(`${weightSum.kg.toFixed(1)}kg`);
     if (weightSum.lb > 0) wStr.push(`${weightSum.lb.toFixed(1)}lb`);
     if (weightSum.tonne > 0) wStr.push(`${weightSum.tonne.toFixed(1)}t`);
-    const minerals = s.items.map(i => `${i.mineral} (${i.grade})`).join(', ');
+    
+    // Ensure grade is never undefined
+    const minerals = s.items.map(i => `${i.mineral} (${i.grade || '—'})`).join(', ');
 
     tr.innerHTML = `
       <td>${s.date}</td>
