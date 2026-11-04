@@ -283,10 +283,10 @@
     <div class="actions"><button class="btn-ghost btn-small" onclick="downloadChart('financialBarChart', 'Financial_Breakdown')">📸 Save Chart</button></div>
   </div>
 
-  <h2>🍕 Revenue vs Expenses</h2>
+  <h2>🍕 Performance by Mineral</h2>
   <div class="card">
     <canvas id="financialPieChart"></canvas>
-    <div class="actions"><button class="btn-ghost btn-small" onclick="downloadChart('financialPieChart', 'Revenue_vs_Expenses')">📸 Save Chart</button></div>
+    <div class="actions"><button class="btn-ghost btn-small" onclick="downloadChart('financialPieChart', 'Mineral_Performance')">📸 Save Chart</button></div>
   </div>
 
   <h2>📊 Profit Trend</h2>
@@ -295,12 +295,12 @@
     <div class="actions"><button class="btn-ghost btn-small" onclick="downloadChart('profitTrendChart', 'Profit_Trend')">📸 Save Chart</button></div>
   </div>
 
-  <h2>🏆 Performance by Mineral</h2>
+  <h2>🏆 Detailed Mineral Breakdown</h2>
   <div class="card scroll">
     <table id="dashMineralsTable">
       <thead><tr>
         <th>Mineral & Grade</th>
-        <th class="amt">Spent (Cost)</th>
+        <th class="amt">Total Spent</th>
         <th class="amt">Revenue</th>
         <th class="amt">Profit</th>
       </tr></thead>
@@ -1627,15 +1627,52 @@ function renderDashboard() {
     options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
   });
 
+  // --- MINERAL PERFORMANCE BREAKDOWN (FOR PIE CHART AND TABLE) ---
+  const mineralAgg = {};
+  const pInRange = db.purchases.filter(p => inRange(p.date, start, end));
+  
+  pInRange.forEach(p => {
+    const key = p.mineral + (p.grade ? ` (${p.grade})` : '');
+    if (!mineralAgg[key]) mineralAgg[key] = { spent: 0, revenue: 0, profit: 0 };
+    mineralAgg[key].spent += p.totalCost;
+    
+    const salesInRange = p.sales.filter(s => inRange(s.date, start, end));
+    mineralAgg[key].revenue += salesInRange.reduce((sum, s) => sum + s.sellTotal, 0);
+    mineralAgg[key].profit += salesInRange.reduce((sum, s) => sum + s.profit, 0);
+  });
+
+  const mineralEntries = Object.entries(mineralAgg).sort((a,b) => b[1].profit - a[1].profit);
+  
+  // Update Table
+  const dashMinTb = document.querySelector('#dashMineralsTable tbody');
+  if (!mineralEntries.length) {
+    dashMinTb.innerHTML = '<tr><td colspan="4" class="empty">No mineral data in this period</td></tr>';
+  } else {
+    dashMinTb.innerHTML = mineralEntries.map(([key, d]) => `
+      <tr>
+        <td><strong>${key}</strong></td>
+        <td class="amt neg">₦${fmtInt(d.spent)}</td>
+        <td class="amt pos">₦${fmtInt(d.revenue)}</td>
+        <td class="amt ${d.profit >= 0 ? 'pos' : 'neg'}"><strong>₦${fmtInt(d.profit)}</strong></td>
+      </tr>
+    `).join('');
+  }
+
+  // Update Pie Chart
   const ctxPie = document.getElementById('financialPieChart').getContext('2d');
   if (financialPieChart) financialPieChart.destroy();
+  
+  const pieLabels = mineralEntries.map(e => e[0]);
+  const pieData = mineralEntries.map(e => e[1].profit > 0 ? e[1].profit : 0);
+  const pieColors = ['#22d3ee', '#22c55e', '#eab308', '#a855f7', '#f97316', '#ef4444', '#14b8a6'];
+
   financialPieChart = new Chart(ctxPie, {
     type: 'doughnut',
     data: {
-      labels: ['Cost of Goods & Expenses', 'Net Profit'],
+      labels: pieLabels.length ? pieLabels : ['No Profit Yet'],
       datasets: [{
-        data: [a.totalExpenses > 0 ? a.totalExpenses : 0, a.profit > 0 ? a.profit : 0],
-        backgroundColor: ['#ef4444', '#22c55e']
+        data: pieData.length ? pieData : [1],
+        backgroundColor: pieLabels.length ? pieColors.slice(0, pieLabels.length) : ['#334155']
       }]
     },
     options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
@@ -1657,36 +1694,6 @@ function renderDashboard() {
     },
     options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } } }
   });
-
-  // --- NEW: MINERAL PERFORMANCE BREAKDOWN ---
-  const mineralAgg = {};
-  const pInRange = db.purchases.filter(p => inRange(p.date, start, end));
-  
-  pInRange.forEach(p => {
-    const key = p.mineral + (p.grade ? ` (${p.grade})` : '');
-    if (!mineralAgg[key]) mineralAgg[key] = { spent: 0, revenue: 0, profit: 0 };
-    mineralAgg[key].spent += p.totalCost;
-    
-    const salesInRange = p.sales.filter(s => inRange(s.date, start, end));
-    mineralAgg[key].revenue += salesInRange.reduce((sum, s) => sum + s.sellTotal, 0);
-    mineralAgg[key].profit += salesInRange.reduce((sum, s) => sum + s.profit, 0);
-  });
-
-  const mineralEntries = Object.entries(mineralAgg).sort((a,b) => b[1].profit - a[1].profit);
-  const dashMinTb = document.querySelector('#dashMineralsTable tbody');
-  
-  if (!mineralEntries.length) {
-    dashMinTb.innerHTML = '<tr><td colspan="4" class="empty">No mineral data in this period</td></tr>';
-  } else {
-    dashMinTb.innerHTML = mineralEntries.map(([key, d]) => `
-      <tr>
-        <td><strong>${key}</strong></td>
-        <td class="amt neg">₦${fmtInt(d.spent)}</td>
-        <td class="amt pos">₦${fmtInt(d.revenue)}</td>
-        <td class="amt ${d.profit >= 0 ? 'pos' : 'neg'}"><strong>₦${fmtInt(d.profit)}</strong></td>
-      </tr>
-    `).join('');
-  }
 
   // --- SMART INSIGHTS ---
   const insightsDiv = document.getElementById('insights');
