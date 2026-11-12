@@ -1,4 +1,4 @@
-const CACHE = 'mrt-v95';
+const CACHE = 'mrt-v96';
 const ASSETS = [
   './',
   './index.html',
